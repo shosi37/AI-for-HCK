@@ -6,6 +6,7 @@ import { auth } from '../firebase'
 import { FiX } from 'react-icons/fi'
 import useTheme from '../hooks/useTheme'
 import ErrorPopup from './ErrorPopup'   // <-- added
+import { saveUserToFirestore } from '../firebase'
 
 function resolveTheme(hookTheme) {
   if (typeof window === 'undefined') return hookTheme || 'light'
@@ -61,6 +62,10 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
       }
 
       setPopup('Account updated successfully.')
+
+      // persist changes to Firestore
+      try { await saveUserToFirestore(auth.currentUser) } catch (e) { console.warn('Failed to save updated user to Firestore', e) }
+
       setTimeout(() => setOpen(false), 1200)
 
     } catch (err) {
@@ -82,12 +87,9 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
     }
   }
 
-  const modalBg = resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'
-  const titleText = resolvedTheme === 'dark' ? 'text-gray-100' : 'text-gray-900'
-  const labelText = resolvedTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-  const inputClasses = resolvedTheme === 'dark'
-    ? 'w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus-ring'
-    : 'w-full p-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 focus-ring'
+  const labelText = 'text-gray-700 dark:text-gray-300'
+
+  const inputClasses = 'w-full p-3 rounded-lg border focus-ring transition-colors duration-200 bg-gray-50 border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'
 
   return (
     <AnimatePresence>
@@ -99,19 +101,19 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className={`w-full max-w-md rounded-2xl p-6 shadow-2xl ${modalBg}`}
+            className={`w-full max-w-md rounded-2xl p-6 shadow-2xl bg-white dark:bg-gray-900 transition-colors duration-200`}
             initial={{ scale: 0.98 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.98 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-lg font-semibold ${titleText}`}>Edit Email & Password</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Edit Email & Password</h3>
               <button
                 onClick={() => setOpen(false)}
                 className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 focus-ring"
                 aria-label="Close"
               >
-                <FiX className={resolvedTheme === 'dark' ? 'text-gray-200' : 'text-gray-700'} />
+                <FiX className="text-gray-700 dark:text-gray-200" />
               </button>
             </div>
 
@@ -162,11 +164,7 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
 
                 <button
                   onClick={() => setOpen(false)}
-                  className={`px-4 py-2 rounded border ${
-                    resolvedTheme === 'dark'
-                      ? 'text-gray-200 border-gray-700'
-                      : 'text-gray-900 border-gray-200'
-                  }`}
+                  className="px-4 py-2 rounded border text-gray-900 border-gray-200 dark:text-gray-200 dark:border-gray-700"
                 >
                   Cancel
                 </button>
