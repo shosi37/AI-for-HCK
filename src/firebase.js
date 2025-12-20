@@ -31,13 +31,22 @@ export const storage = getStorage(app);
 export const db = getFirestore(app);
 
 // Helper to save basic user info to Firestore (upserts)
-// sanitize dicebear URLs that may contain unsupported query params (e.g. backgroundType=gradient:1)
+// sanitize avatar URLs (handle DiceBear gradient tokens and recognize other providers like AbstractAPI / proxy)
 function sanitizeAvatarUrl(url) {
   try {
     const u = new URL(url)
-    if (u.hostname.includes('dicebear')) {
-      const bt = u.searchParams.get('backgroundType')
-      if (bt && bt.startsWith('gradient')) u.searchParams.set('backgroundType', 'transparent')
+    const host = u.hostname
+    // DiceBear: backgroundType/background gradient token -> replace with transparent
+    if (host.includes('dicebear')) {
+      const bt = u.searchParams.get('backgroundType') || u.searchParams.get('background')
+      if (bt && bt.startsWith('gradient')) {
+        if (u.searchParams.has('backgroundType')) u.searchParams.set('backgroundType', 'transparent')
+        else u.searchParams.set('background', 'transparent')
+      }
+      return u.toString()
+    }
+    // AbstractAPI or proxy hosts: they typically embed an api_key and name; leave intact
+    if (host.includes('abstractapi') || host.includes('liara.run') || host.includes('iran.liara.run') || host.includes('avatar.iran.liara.run')) {
       return u.toString()
     }
   } catch (e) {}
@@ -58,17 +67,6 @@ export async function saveUserToFirestore(user) {
     }, { merge: true })
   } catch (e) {
     console.error('Failed to save user to Firestore', e)
-  }
-}
-
-export async function getAdmins() {
-  try {
-    const ref = doc(db, 'meta', 'admins')
-    const snap = await getDoc(ref)
-    return snap.exists() ? snap.data() : { emails: [], uids: [] }
-  } catch (e) {
-    console.error('Failed to load admins', e)
-    return { emails: [], uids: [] }
   }
 }
 
@@ -103,85 +101,7 @@ export async function getAllUsers() {
   }
 }
 
-// Admin helpers: modify the meta/admins document
-export async function addAdmin({ uid, email }) {
-  try {
-    const ref = doc(db, 'meta', 'admins')
-    const snap = await getDoc(ref)
-    const current = snap.exists() ? snap.data() : { emails: [], uids: [] }
-    const emails = Array.from(new Set([...(current.emails || []), ...(email ? [email] : [])]))
-    const uids = Array.from(new Set([...(current.uids || []), ...(uid ? [uid] : [])]))
-    await setDoc(ref, { emails, uids }, { merge: true })
-    return { emails, uids }
-  } catch (e) {
-    console.error('Failed to add admin', e)
-    throw e
-  }
-}
-
-// Overwrite admin list (use to ensure only one admin exists)
-export async function setAdmins({ emails = [], uids = [] }) {
-  try {
-    const ref = doc(db, 'meta', 'admins')
-    await setDoc(ref, { emails, uids })
-  } catch (e) {
-    console.error('Failed to set admins', e)
-    throw e
-  }
-}
-
-export async function removeAdmin({ uid, email }) {
-  try {
-    const ref = doc(db, 'meta', 'admins')
-    const snap = await getDoc(ref)
-    const current = snap.exists() ? snap.data() : { emails: [], uids: [] }
-    const emails = (current.emails || []).filter(e => e !== email)
-    const uids = (current.uids || []).filter(u => u !== uid)
-    await setDoc(ref, { emails, uids }, { merge: true })
-    return { emails, uids }
-  } catch (e) {
-    console.error('Failed to remove admin', e)
-    throw e
-  }
-}
-
-// Admin credentials (for simple username/password admin panel)
-export async function getAdminCredentials() {
-  try {
-    const ref = doc(db, 'meta', 'adminCredentials')
-    const snap = await getDoc(ref)
-    return snap.exists() ? snap.data() : null
-  } catch (e) {
-    console.error('Failed to get admin credentials', e)
-    return null
-  }
-}
-
-export async function setAdminCredentials({ username, hash }) {
-  try {
-    const ref = doc(db, 'meta', 'adminCredentials')
-    await setDoc(ref, { username, hash }, { merge: true })
-  } catch (e) {
-    console.error('Failed to set admin credentials', e)
-    throw e
-  }
-}
-
-// Ensure there's a default admin credentials doc (username: admin, password: admin)
-export async function ensureDefaultAdminCredentials() {
-  try {
-    const ref = doc(db, 'meta', 'adminCredentials')
-    const snap = await getDoc(ref)
-    if (!snap.exists()) {
-      // no doc exists — leave it to the app to create desired defaults
-      return null
-    }
-    return snap.data()
-  } catch (e) {
-    console.error('Failed to ensure default admin credentials', e)
-    return null
-  }
-}
+// Admin helpers removed — project no longer includes admin functionality (removed to run without firebase-admin).
 
 // FAQ helpers for admin to manage chatbot FAQ
 export async function getFAQ() {
