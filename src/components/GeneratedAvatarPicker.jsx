@@ -4,8 +4,8 @@ import { motion } from 'framer-motion'
 import useTheme from '../hooks/useTheme'
 
 /**
- * Robust GeneratedAvatarPicker using DiceBear SVG endpoint with preloading/fallback.
- * Now respects app theme: transparent/clean avatars for light mode; gradient for dark.
+ * Robust GeneratedAvatarPicker using AbstractAPI avatar endpoint with preloading/fallback.
+ * Respects app theme and provides a randomized seed grid; safe fallback image used when provider fails.
  *
  * Props:
  *  - name: string (seed base)
@@ -18,8 +18,11 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
   const [variantIndex, setVariantIndex] = useState(0)
   const [loadingMap, setLoadingMap] = useState({}) // { url: 'loading'|'ok'|'error' }
 
-  // Supported dicebear styles (pick a few stable ones)
-  const variants = ['initials', 'pixel-art', 'adventurer', 'avataaars', 'identicon', 'big-smile']
+  // simple variants array used for UI randomness (AbstractAPI ignores style param)
+  const variants = ['v1','v2','v3','v4','v5','v6']
+
+  // AbstractAPI key (preferred: set VITE_AVATAR_API_KEY in your .env; fallback to provided key)
+  const AVATAR_API_KEY = import.meta.env.VITE_AVATAR_API_KEY || '30f2351721d942388fad70debe5eb231'
 
   // Build seeds
   const seeds = useMemo(() => {
@@ -27,30 +30,32 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
     return Array.from({ length: 8 }).map((_, i) => `${base}-${variantIndex}-${i}`)
   }, [seedBase, variantIndex])
 
-  // Build a stable, encoded dicebear SVG URL
-  function avatarUrlFor(seed, style = 'initials') {
+  // Build candidate AbstractAPI URLs for robustness
+  // AbstractAPI avatar endpoint: https://avatars.abstractapi.com/v1/?api_key=KEY&name=...&size=120
+  function avatarCandidates(seed /* style ignored for AbstractAPI */) {
     const s = encodeURIComponent(seed)
-
-    // Choose background type based on theme:
-    // - light theme: transparent (so the avatar sits on a light tile)
-    // - dark theme: gradient (nice contrast for dark UI)
-    const bgType = theme === 'dark' ? 'gradient' : 'transparent'
-
-    // Use the avatars.dicebear.com API which is broadly compatible
-    // Example: https://avatars.dicebear.com/api/initials/seed.svg?backgroundType=transparent
-    return `https://avatars.dicebear.com/api/${style}/${s}.svg?backgroundType=${bgType}`
+    const base = `https://avatars.abstractapi.com/v1/`
+    const preferred = `${base}?api_key=${AVATAR_API_KEY}&name=${s}&size=120`
+    const fallback = `${base}?api_key=${AVATAR_API_KEY}&name=${s}`
+    return [preferred, fallback]
   }
 
-  // Preload helper that checks HTTP response before marking ok
-  async function preloadUrl(url) {
-    try {
-      // lightweight HEAD/GET check
-      const res = await fetch(url, { method: 'GET', cache: 'force-cache' })
-      if (!res.ok) throw new Error('not-ok')
-      return true
-    } catch (err) {
-      return false
-    }
+  // Try each candidate in order and return the first working URL (or null)
+  // Use Image() to detect load success to avoid CORS fetch issues.
+  function findWorkingUrl(candidates) {
+    return new Promise((resolve) => {
+      let settled = false
+      const tryNext = (i) => {
+        if (i >= candidates.length) return resolve(null)
+        const url = candidates[i]
+        const img = new Image()
+        img.onload = () => { if (!settled) { settled = true; resolve(url) } }
+        img.onerror = () => { if (!settled) { tryNext(i + 1) } }
+        // start load
+        img.src = url
+      }
+      tryNext(0)
+    })
   }
 
   // Preload whenever seeds, variant or theme change
@@ -58,11 +63,15 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
     let active = true
     ;(async () => {
       for (const s of seeds) {
-        const url = avatarUrlFor(s, variants[variantIndex % variants.length])
-        setLoadingMap((m) => ({ ...m, [url]: 'loading' }))
-        const ok = await preloadUrl(url)
+        // style is only UI-facing; AbstractAPI ignores style, so we pass the seed only
+        const styleForSeed = variants[variantIndex % variants.length]
+        const candidates = avatarCandidates(s)
+        // key by seed so we never set the image src to a URL that failed
+        setLoadingMap((m) => ({ ...m, [s]: { status: 'loading' } }))
+        const working = await findWorkingUrl(candidates)
         if (!active) return
-        setLoadingMap((m) => ({ ...m, [url]: ok ? 'ok' : 'error' }))
+        if (working) setLoadingMap((m) => ({ ...m, [s]: { status: 'ok', url: working } }))
+        else setLoadingMap((m) => ({ ...m, [s]: { status: 'error' } }))
       }
     })()
     return () => { active = false }
@@ -101,17 +110,18 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
 
       <div className="grid grid-cols-4 gap-3">
         {seeds.map((s) => {
-          const url = avatarUrlFor(s, style)
-          const status = loadingMap[url] || 'loading'
-          const isCurrent = currentUrl && currentUrl === url
-          const showSrc = status === 'ok' ? url : fallbackDataUrl(s)
+          const entry = loadingMap[s] || { status: 'loading' }
+          const status = entry.status
+          const workingUrl = entry.url
+          const isCurrent = currentUrl && currentUrl === workingUrl
+          const showSrc = status === 'ok' && workingUrl ? workingUrl : fallbackDataUrl(s)
 
           return (
             <motion.button
               key={s}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => onSelect && onSelect(url)}
+              onClick={() => onSelect && onSelect(status === 'ok' && workingUrl ? workingUrl : fallbackDataUrl(s))}
               className={`relative rounded-lg overflow-hidden border p-1
                 ${isCurrent ? 'border-indigo-400 ring-2 ring-indigo-400/30' : 'border-transparent'}
                 ${theme === 'dark' ? 'bg-gray-900' : 'bg-white shadow-sm'}`}
@@ -141,7 +151,7 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
       </div>
 
       <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-        Avatars generated by DiceBear. Use Randomize or change the seed to get more variants.
+        Avatars generated by AbstractAPI. Tip: set <code>VITE_AVATAR_API_KEY</code> in your .env to use your own key.
       </div>
     </div>
   )
