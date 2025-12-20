@@ -5,7 +5,7 @@ import AuthForm from './AuthForm'
 import { FcGoogle } from 'react-icons/fc'
 import { FaApple } from 'react-icons/fa'
 import { signInWithPopup } from 'firebase/auth'
-import { auth, googleProvider } from '../firebase'
+import { auth, googleProvider, getAdmins } from '../firebase'
 import ThemeToggle from './ThemeToggle'
 import BackButton from './BackButton'
 
@@ -17,6 +17,20 @@ export default function AuthCard() {
     try {
       setBusy(true)
       await signInWithPopup(auth, googleProvider)
+      // if this Google account is an admin, set a flag so Home can auto-open admin panel
+      try {
+        const u = auth.currentUser
+        if (u && u.email) {
+          const meta = await getAdmins()
+          const emails = meta?.emails || []
+          const uids = meta?.uids || []
+          if (emails.includes(u.email) || uids.includes(u.uid)) {
+            try { localStorage.setItem('admin-auto-open', '1') } catch (e) {}
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
     } catch (e) {
       console.error(e)
       alert(e.message)

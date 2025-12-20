@@ -114,11 +114,26 @@ export default function AuthForm({ mode, setMode, setBusy }) {
             const nameToShow = auth.currentUser?.displayName || auth.currentUser?.email || ''
             localStorage.setItem('login-success', '1')
             localStorage.setItem('login-success-name', nameToShow)
+
+            // Also write into sessionStorage for immediate session-only visibility (DevTools -> Session Storage)
+            try {
+              const u = auth.currentUser
+              const minimal = JSON.stringify({ uid: u?.uid || '', email: u?.email || '', displayName: u?.displayName || '' })
+              sessionStorage.setItem('session-user', minimal)
+              sessionStorage.setItem('login-success', '1')
+              sessionStorage.setItem('login-success-name', nameToShow)
+            } catch (e) { /* ignore sessionStorage errors */ }
+
             // schedule cleanup after 5s
             setTimeout(() => {
               try {
                 localStorage.removeItem('login-success')
                 localStorage.removeItem('login-success-name')
+                // Also remove session flags after 5s to avoid stale UI signals
+                try {
+                  sessionStorage.removeItem('login-success')
+                  sessionStorage.removeItem('login-success-name')
+                } catch (e) {}
               } catch (e) {}
             }, 5000)
           } catch (e) {
@@ -135,6 +150,10 @@ export default function AuthForm({ mode, setMode, setBusy }) {
           } else {
             setError(translateFirebaseError(err.code, err.message))
           }
+          // record error in sessionStorage for debugging
+          try {
+            sessionStorage.setItem('login-error', JSON.stringify({ message: err.message || 'Login error', code: err.code || null, time: Date.now() }))
+          } catch (e) {}
           triggerShake()
           emailRef.current?.focus()
           throw err
@@ -151,6 +170,10 @@ export default function AuthForm({ mode, setMode, setBusy }) {
           } else {
             setError(translateFirebaseError(err.code, err.message))
           }
+          // record error in sessionStorage
+          try {
+            sessionStorage.setItem('login-error', JSON.stringify({ message: err.message || 'Reset error', code: err.code || null, time: Date.now() }))
+          } catch (e) {}
           triggerShake()
           emailRef.current?.focus()
           throw err
