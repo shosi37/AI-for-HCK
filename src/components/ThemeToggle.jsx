@@ -16,8 +16,8 @@ export default function ThemeToggle({ size = 18 }) {
       aria-label="Toggle theme"
       title="Toggle theme"
       className="inline-flex items-center justify-center w-10 h-10 rounded-xl border 
-                 bg-white/90 dark:bg-black/10 text-gray-800 dark:text-gray-200
-                 border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition focus-ring"
+                 bg-white/90 dark:bg-gray-800/60 text-gray-800 dark:text-gray-200
+                 border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-colors duration-200 focus-ring"
     >
       {/* Show Moon icon in light mode, Sun in dark mode (so icon represents action) */}
       {theme === 'dark' ? <FiSun size={size} /> : <FiMoon size={size} />}

@@ -6,8 +6,8 @@
   --accent: 221 90 255;
 }
 
-body{ @apply bg-gray-50 text-gray-800; }
-.dark body{ @apply bg-gray-900 text-gray-100; }
+body{ @apply bg-gray-50 text-gray-800 transition-colors duration-200; }
+.dark body{ @apply bg-gray-900 text-gray-100 transition-colors duration-200; }
 
 .focus-ring:focus{ outline: 2px solid rgba(var(--accent) / 0.18); outline-offset: 2px; }
 
