@@ -4,9 +4,11 @@ import ProfileMenu from '../components/ProfileMenu'
 import ThemeToggle from '../components/ThemeToggle'
 import SuccessPopup from '../components/SuccessPopup'
 import { motion } from 'framer-motion'
+import AIChat from './AIChat' 
 
 export default function Home({ user, onSignOut }) {
   const [successMsg, setSuccessMsg] = useState(null)
+  const [showChat, setShowChat] = useState(false)  
 
   useEffect(() => {
     // handler for the dispatched event
@@ -17,15 +19,15 @@ export default function Home({ user, onSignOut }) {
       setSuccessMsg(`Welcome back, ${name} 👋`)
     }
 
-    // 1) localStorage fallback (in case AuthForm wrote flag before Home mounted)
+    // 1) localStorage/sessionStorage fallback (in case AuthForm wrote flag before Home mounted)
     try {
-      const flag = localStorage.getItem('login-success')
+      const flag = localStorage.getItem('login-success') || sessionStorage.getItem('login-success')
       if (flag) {
-        const storedName = localStorage.getItem('login-success-name') || user.displayName || user.email || 'there'
+        const storedName = localStorage.getItem('login-success-name') || sessionStorage.getItem('login-success-name') || user.displayName || user.email || 'there'
         setSuccessMsg(`Welcome back, ${storedName} 👋`)
         // clear immediately to avoid repeat
-        localStorage.removeItem('login-success')
-        localStorage.removeItem('login-success-name')
+        try { localStorage.removeItem('login-success'); localStorage.removeItem('login-success-name') } catch (e) {}
+        try { sessionStorage.removeItem('login-success'); sessionStorage.removeItem('login-success-name') } catch (e) {}
       }
     } catch (e) {
       // ignore storage errors (private mode, etc.)
@@ -35,6 +37,10 @@ export default function Home({ user, onSignOut }) {
     window.addEventListener('login-success', handleLoginSuccess)
     return () => window.removeEventListener('login-success', handleLoginSuccess)
   }, [user])
+
+
+
+
 
   return (
     <div
@@ -54,6 +60,13 @@ export default function Home({ user, onSignOut }) {
         </div>
 
         <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowChat(true)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-500"
+            >
+              AI Chat
+            </button> 
+
           <ThemeToggle />
           <ProfileMenu user={user} onSignOut={onSignOut} />
         </div>
@@ -64,7 +77,7 @@ export default function Home({ user, onSignOut }) {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="bg-white/80 dark:bg-white/5 rounded-2xl p-6 shadow-lg backdrop-blur-sm"
+          className="bg-white/80 dark:bg-gray-900/60 rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-colors duration-200"
         >
           {/* animated friendly welcome */}
           <motion.h3
@@ -101,6 +114,12 @@ export default function Home({ user, onSignOut }) {
           </div>
         </motion.div>
       </main>
+
+      {showChat && (
+        <AIChat user={user} onClose={() => setShowChat(false)} />
+      )}
+
+
     </div>
   )
 }

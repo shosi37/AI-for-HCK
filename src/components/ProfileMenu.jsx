@@ -5,10 +5,34 @@ import { FiChevronDown, FiLogOut, FiEdit } from 'react-icons/fi'
 import EditProfileModal from './EditProfileModal'
 import EditEmailModal from './EditEmailModal'
 
+import { useEffect } from 'react' 
+
 export default function ProfileMenu({ user, onSignOut }) {
   const [open, setOpen] = useState(false)
   const [editProfileOpen, setEditProfileOpen] = useState(false)
-  const [editEmailOpen, setEditEmailOpen] = useState(false)
+  const [editEmailOpen, setEditEmailOpen] = useState(false) 
+
+
+
+  // sanitize avatar URLs (handle DiceBear gradient tokens and recognize other providers like AbstractAPI / proxy)
+  function sanitizeAvatarUrl(url) {
+    try {
+      const u = new URL(url)
+      const host = u.hostname
+      if (host.includes('dicebear')) {
+        const bt = u.searchParams.get('backgroundType') || u.searchParams.get('background')
+        if (bt && bt.startsWith('gradient')) {
+          if (u.searchParams.has('backgroundType')) u.searchParams.set('backgroundType', 'transparent')
+          else u.searchParams.set('background', 'transparent')
+        }
+        return u.toString()
+      }
+      if (host.includes('abstractapi') || host.includes('liara.run') || host.includes('iran.liara.run') || host.includes('avatar.iran.liara.run')) {
+        return u.toString()
+      }
+    } catch (e) {}
+    return url
+  }
 
   return (
     <div className="relative">
@@ -20,7 +44,7 @@ export default function ProfileMenu({ user, onSignOut }) {
       >
         <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden flex items-center justify-center">
           {user.photoURL ? (
-            <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" />
+            <img src={sanitizeAvatarUrl(user.photoURL)} alt="avatar" className="w-full h-full object-cover" />
           ) : (
             <span className="text-lg text-gray-700 dark:text-gray-100">{user.displayName ? user.displayName[0].toUpperCase() : user.email[0].toUpperCase()}</span>
           )}
@@ -40,7 +64,7 @@ export default function ProfileMenu({ user, onSignOut }) {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-3 w-56 bg-white/95 dark:bg-gray-900/80 backdrop-blur-md rounded-xl shadow-lg z-50 overflow-hidden"
+            className="absolute right-0 mt-3 w-56 bg-white/95 dark:bg-gray-900/80 backdrop-blur-md rounded-xl shadow-lg z-50 overflow-hidden transition-colors duration-200"
           >
             <div className="p-2">
               <button
@@ -58,6 +82,8 @@ export default function ProfileMenu({ user, onSignOut }) {
               </button>
 
               <div className="my-1 border-t border-gray-200/30 dark:border-white/5"></div>
+
+
 
               <button
                 onClick={() => { onSignOut(); setOpen(false) }}
