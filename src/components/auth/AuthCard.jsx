@@ -4,8 +4,6 @@ import { motion } from 'framer-motion'
 import AuthForm from './AuthForm'
 import { FcGoogle } from 'react-icons/fc'
 import { FaApple } from 'react-icons/fa'
-import { signInWithPopup } from 'firebase/auth'
-import { auth, googleProvider } from '../../firebase'
 import { ThemeToggle } from '../ui' 
 import { BackButton } from '../ui' 
 
@@ -13,19 +11,7 @@ export default function AuthCard() {
   const [mode, setMode] = useState('login')
   const [busy, setBusy] = useState(false)
 
-  async function handleGoogle() {
-    try {
-      setBusy(true)
-      await signInWithPopup(auth, googleProvider)
-      // if this Google account is an admin, set a flag so Home can auto-open admin panel
-
-    } catch (e) {
-      console.error(e)
-      alert(e.message)
-    } finally {
-      setBusy(false)
-    }
-  }
+  // Google sign-in handled via the server-side flow in `AuthForm` (Authorization Code -> backend session).
 
   return (
     <motion.div
@@ -60,7 +46,7 @@ export default function AuthCard() {
 </div>
 
       {/* AUTH FORM */}
-      <AuthForm mode={mode} setMode={setMode} setBusy={setBusy} />
+      <AuthForm mode={mode} setMode={setMode} setBusy={setBusy} showGoogleButton={false} />
 
       <div className="flex items-center justify-center my-6">
   <div className="h-px bg-gray-300 dark:bg-gray-700 w-full"></div>
@@ -75,13 +61,17 @@ export default function AuthCard() {
   <div className="h-px bg-gray-300 dark:bg-gray-700 w-full"></div>
 </div>
 
-      {/* GOOGLE BUTTON */}
+      {/* CONTINUE WITH GOOGLE (server-side flow) */}
       <button
-        onClick={handleGoogle}
+        onClick={() => {
+          const base = import.meta.env.VITE_BACKEND_URL || ''
+          const redirect = window.location.origin
+          window.location.href = `${base}/api/oauth/google/start?redirect=${encodeURIComponent(redirect)}`
+        }}
         disabled={busy}
         className="
-          w-full flex items-center justify-center gap-3 py-3 rounded-xl 
-          bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 
+          w-full flex items-center justify-center gap-3 py-3 rounded-xl mt-3
+          bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700
           shadow-sm hover:shadow-md transition focus-ring
         "
       >

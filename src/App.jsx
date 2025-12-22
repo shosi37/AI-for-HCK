@@ -13,6 +13,46 @@ export default function App() {
 
   useEffect(() => {
     let unsub = null
+
+    // Handle OAuth redirect fragment: server redirects back as `#access_token=...`
+    ;(async () => {
+      try {
+        const hash = window.location.hash || ''
+        if (hash && (hash.includes('access_token=') || hash.includes('firebase_custom_token='))) {
+          const p = new URLSearchParams(hash.replace(/^#/, ''))
+
+          // Server-issued API access token (for server auth)
+          const t = p.get('access_token')
+          if (t) {
+            console.log('[App] Detected OAuth access_token in fragment — storing to localStorage')
+            localStorage.setItem('auth-token', t)
+          }
+
+          // Server-issued Firebase custom token (so the client SDK can sign in)
+          const custom = p.get('firebase_custom_token')
+          if (custom) {
+            console.log('[App] Detected firebase_custom_token in fragment — signing in Firebase client')
+            try {
+              // lazy-load to avoid adding initial bundle weight
+              const { signInWithCustomToken } = await import('firebase/auth')
+              const { auth } = await import('./firebase')
+              try {
+                await signInWithCustomToken(auth, custom)
+                console.log('[App] Firebase client signed in with custom token')
+              } catch (e) {
+                console.warn('[App] Firebase signInWithCustomToken failed', e)
+              }
+            } catch (e) {
+              console.warn('[App] Failed to import Firebase signInWithCustomToken', e)
+            }
+          }
+
+          // remove fragment for cleanliness
+          try { history.replaceState(null, '', window.location.pathname + window.location.search) } catch (e) {}
+        }
+      } catch (e) {}
+    })()
+
     const token = localStorage.getItem('auth-token')
 
     async function fetchProfileWithToken(t) {
