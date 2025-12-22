@@ -77,6 +77,9 @@ app.post('/api/login', async (req, res) => {
 
     const token = jwt.sign(payload, SECRET, { expiresIn: '7d' })
 
+    // log a short success message to help debug frontend login flow
+    console.log('login success for uid', uid, 'email', fb.email)
+
     return res.json({ token, user: payload, firebaseIdToken: fb.idToken })
   } catch (err) {
     // relay Firebase error message as friendly message, but avoid leaking internal codes
