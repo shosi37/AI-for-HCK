@@ -43,8 +43,21 @@ if (SERVICE_ACCOUNT_JSON) {
     console.error('Failed to load service account from path', SERVICE_ACCOUNT_PATH, e.message)
   }
 } else {
-  console.warn('Firebase Admin not initialized. PROFILE endpoint will only return token payload.')
+  console.warn('Firebase Admin not initialized. PROFILE endpoint will only return token payload and sessions will use a local file fallback.')
 }
+
+// Migrate any existing file-based sessions into Firestore if admin is present
+(async () => {
+  if (admin.apps.length) {
+    try {
+      const result = await sessions.migrateFromFileDb()
+      if (result && result.migrated) console.log(`sessions migration: migrated ${result.migrated}`)
+    } catch (e) {
+      console.warn('sessions migration failed', e.message)
+    }
+  }
+})()
+
 
 // Utility: call Firebase REST sign-in to verify email/password
 async function firebaseSignInWithPassword(email, password) {
