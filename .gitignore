@@ -4,5 +4,6 @@ dist/
 .env
 backend/.env
 backend/sessions.json
+backend/service-account.json
 .DS_Store
 61
