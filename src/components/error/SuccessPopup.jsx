@@ -19,7 +19,7 @@ export default function SuccessPopup({ message, onClose, ttl = 3500 }) {
           exit={{ opacity: 0, y: -10, scale: 0.97 }}
           transition={{ duration: 0.25 }}
           className="
-            fixed top-6 left-1/2 -translate-x-1/2 z-50 
+            fixed top-6 left-1/2 -translate-x-1/2 z-[100000]
             flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl
             bg-green-600 text-white ring-1 ring-green-800/30
           "

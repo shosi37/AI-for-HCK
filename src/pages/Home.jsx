@@ -35,7 +35,18 @@ export default function Home({ user, onSignOut }) {
 
     // 2) listen for the event (happy path)
     window.addEventListener('login-success', handleLoginSuccess)
-    return () => window.removeEventListener('login-success', handleLoginSuccess)
+
+    // also show a success message when profile is updated elsewhere
+    function handleProfileUpdated(ev) {
+      try {
+        const nameFromEvent = ev?.detail?.user?.displayName
+        const name = nameFromEvent || user.displayName || user.email || 'there'
+        setSuccessMsg(`Profile updated — ${name}`)
+      } catch (e) {}
+    }
+    window.addEventListener('profile-updated', handleProfileUpdated)
+
+    return () => { window.removeEventListener('login-success', handleLoginSuccess); window.removeEventListener('profile-updated', handleProfileUpdated) }
   }, [user])
 
 
