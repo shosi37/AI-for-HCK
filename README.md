@@ -4,8 +4,13 @@ Quick setup:
 1. npm install
 2. Copy `.env.example` to `.env` and fill frontend keys (VITE_FIREBASE_*, VITE_AVATAR_API_KEY, VITE_BACKEND_URL)
 3. Copy `backend/.env.example` to `backend/.env` and fill backend keys (FIREBASE_API_KEY, JWT_SECRET, SERVICE_ACCOUNT_*)
-4. start the backend in a separate terminal: `npm run start-backend`
-5. start the frontend: `npm run dev`
+4. start both servers together (recommended): `npm run dev` — this uses `vite` for the frontend and starts the backend automatically once the frontend is reachable (reduces Vite client ping errors)
+   - Or run servers separately: `npm run dev-frontend` and `npm --prefix backend run dev`
+
+Authentication flow (production-ready recommendation):
+- Client-side: use the Firebase client SDK to sign in (e.g. `signInWithEmailAndPassword`) and obtain an ID token via `user.getIdToken()`.
+- Exchange the ID token with the backend: POST `{ idToken }` to `/api/login-token`. The backend verifies the ID token using the Firebase Admin SDK and creates a server refresh session (HttpOnly cookie) and returns a short-lived access token.
+- For API calls, prefer using the Firebase ID token when available or the server access token; the backend accepts either and will verify the ID token directly when Admin is configured.
 
 Environment variables (summary):
 - Frontend (`.env` at repo root):
