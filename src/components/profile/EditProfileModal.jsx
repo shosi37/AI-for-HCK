@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { updateProfile } from 'firebase/auth'
 import { auth, saveUserToFirestore } from '../../firebase'
 import GeneratedAvatarPicker from './GeneratedAvatarPicker'
-import { ErrorPopup, SuccessPopup } from '../error' 
+import { ErrorPopup } from '../error' 
 import { FiX, FiCheck } from 'react-icons/fi'
 import useTheme from '../../hooks/useTheme'
 
@@ -118,7 +118,6 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
 
             <div className="space-y-4">
               <ErrorPopup message={error} />
-              <SuccessPopup message={saved ? 'Profile updated' : null} onClose={() => setSaved(false)} />
 
               <div>
                 <label className={`text-sm block mb-1 ${labelText}`}>Display name</label>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import ChatSidebar from '../components/ChatSidebar'
+import { ChatSidebar } from '../components/ui' 
 import { getChatbotConfig, getFAQ, addAIFeedback } from '../firebase'
 
 function timeNow() {

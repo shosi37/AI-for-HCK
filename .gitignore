@@ -3,5 +3,6 @@ node_modules/
 dist/
 .env
 backend/.env
+backend/sessions.json
 .DS_Store
 61

@@ -88,6 +88,7 @@ export default function AuthForm({ mode = 'login', setMode = () => {}, setBusy =
           const r = await fetch(`${base}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ email, password })
           })
 

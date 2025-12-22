@@ -7,8 +7,13 @@ const jwt = require('jsonwebtoken')
 const admin = require('firebase-admin')
 
 const app = express()
-app.use(cors())
+const cookieParser = require('cookie-parser')
+const crypto = require('crypto')
+const sessions = require('./sessions')
+
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', credentials: true }))
 app.use(express.json())
+app.use(cookieParser())
 
 const {
   FIREBASE_API_KEY,
@@ -78,15 +83,31 @@ app.post('/api/login', async (req, res) => {
       emailVerified: fb.emailVerified || (userRecord && userRecord.emailVerified) || false,
     }
 
-    const token = jwt.sign(payload, SECRET, { expiresIn: '7d' })
+    // short-lived access token (keeps sessions limited)
+    const accessToken = jwt.sign(payload, SECRET, { expiresIn: process.env.ACCESS_EXPIRES || '15m' })
+
+    // create a refresh token, persist a hash server-side and set secure HttpOnly cookie
+    const refreshToken = crypto.randomBytes(64).toString('hex')
+    const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
+    const refreshExpiryMs = parseInt(process.env.REFRESH_EXPIRES_MS || String(30 * 24 * 60 * 60 * 1000), 10) // default 30 days
+    const expiresAt = Date.now() + refreshExpiryMs
+
+    await sessions.createSession({ uid, tokenHash: refreshHash, expiresAt, meta: payload })
+
+    // set HttpOnly cookie (secure in production)
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: refreshExpiryMs
+    })
 
     // log a short success message to help debug frontend login flow
     console.log('login success for uid', uid, 'email', fb.email)
 
-    return res.json({ token, user: payload, firebaseIdToken: fb.idToken })
+    return res.json({ token: accessToken, user: payload })
   } catch (err) {
     // relay Firebase error message as friendly message, but avoid leaking internal codes
-    // dump full error for server logs to help debug (do not send raw to client)
     console.error('login error', {
       status: err.response?.status,
       url: err.config?.url,
@@ -106,7 +127,6 @@ app.post('/api/login', async (req, res) => {
       msg = err.message
     }
 
-    // treat a variety of firebase credential error messages as bad credentials (401)
     const credentialIndicators = [
       'INVALID_PASSWORD', 'EMAIL_NOT_FOUND', 'INVALID_LOGIN_CREDENTIALS',
       'INVALID_EMAIL', 'USER_NOT_FOUND', 'EMAIL_EXISTS'
@@ -154,6 +174,58 @@ app.get('/api/profile', verifyToken, async (req, res) => {
   }
 
   return res.json({ user: req.user })
+})
+
+// Refresh endpoint to rotate refresh tokens and issue a new access token
+app.post('/api/refresh', async (req, res) => {
+  try {
+    const rt = req.cookies && req.cookies.refreshToken
+    if (!rt) return res.status(401).json({ error: 'Missing refresh token' })
+    const hash = crypto.createHash('sha256').update(rt).digest('hex')
+    const session = await sessions.findByTokenHash(hash)
+    if (!session || session.expiresAt < Date.now()) {
+      return res.status(401).json({ error: 'Invalid refresh token' })
+    }
+
+    // use stored meta (payload) when available
+    const payload = session.meta || { uid: session.uid }
+    const newAccess = jwt.sign(payload, SECRET, { expiresIn: process.env.ACCESS_EXPIRES || '15m' })
+
+    // rotate refresh token
+    const newRt = crypto.randomBytes(64).toString('hex')
+    const newHash = crypto.createHash('sha256').update(newRt).digest('hex')
+    const refreshExpiryMs = parseInt(process.env.REFRESH_EXPIRES_MS || String(30 * 24 * 60 * 60 * 1000), 10)
+    const newExpiresAt = Date.now() + refreshExpiryMs
+    await sessions.rotateSession(hash, newHash, newExpiresAt)
+
+    res.cookie('refreshToken', newRt, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: refreshExpiryMs
+    })
+
+    return res.json({ token: newAccess })
+  } catch (e) {
+    console.error('refresh error', e)
+    return res.status(500).json({ error: 'Refresh failed' })
+  }
+})
+
+// Logout: remove current refresh token session and clear cookie
+app.post('/api/logout', async (req, res) => {
+  try {
+    const rt = req.cookies && req.cookies.refreshToken
+    if (rt) {
+      const hash = crypto.createHash('sha256').update(rt).digest('hex')
+      await sessions.deleteByTokenHash(hash)
+    }
+    res.clearCookie('refreshToken')
+    return res.json({ ok: true })
+  } catch (e) {
+    console.error('logout error', e)
+    return res.status(500).json({ error: 'Logout failed' })
+  }
 })
 
 app.listen(PORT, () => console.log(`Backend listening on http://localhost:${PORT}`))

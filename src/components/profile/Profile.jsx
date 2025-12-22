@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { sendEmailVerification } from 'firebase/auth'
-import BackButton from '../BackButton'
+import { BackButton } from '../ui' 
 
 export default function Profile({ user, onSignOut }) {
   const [sent, setSent] = useState(false)

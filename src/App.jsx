@@ -4,7 +4,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth, saveUserToFirestore } from './firebase' 
 import AuthCard from './components/auth/AuthCard'
 import Home from './pages/Home'
-import AnimatedBackground from './components/AnimatedBackground'
+import { AnimatedBackground } from './components/ui' 
 import { ErrorBoundary } from './components/error' 
 
 export default function App() {
@@ -17,8 +17,8 @@ export default function App() {
 
     async function fetchProfileWithToken(t) {
       try {
-        const base = import.meta.env.VITE_BACKEND_URL || ''
-        const r = await fetch(`${base}/api/profile`, { headers: { Authorization: `Bearer ${t}` } })
+        const { fetchWithAuth } = await import('./utils/api')
+        const r = await fetchWithAuth('/api/profile', { method: 'GET' })
         if (r.ok) {
           const { user } = await r.json()
           setUser(user)
@@ -86,8 +86,12 @@ export default function App() {
     return () => { if (unsub) unsub(); window.removeEventListener('login-success', handleLoginSuccess) }
   }, [])
 
-  function handleSignOut() {
+  async function handleSignOut() {
     try { localStorage.removeItem('auth-token') } catch (e) {}
+    try {
+      const base = import.meta.env.VITE_BACKEND_URL || ''
+      await fetch(`${base}/api/logout`, { method: 'POST', credentials: 'include' })
+    } catch (e) {}
     signOut(auth)
     setUser(null)
   }
