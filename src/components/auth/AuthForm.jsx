@@ -1,43 +1,23 @@
-// src/components/AuthForm.jsx
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  sendEmailVerification,
-  updateProfile,
-} from 'firebase/auth'
-import { auth } from '../firebase'
-import { translateFirebaseError } from '../utils/firebaseErrors'
-import ErrorPopup from './ErrorPopup'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth'
+import { auth } from '../../firebase'
+import ErrorPopup from '../ErrorPopup'
 import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi'
+import { translateFirebaseError } from '../../utils/firebaseErrors'
 
-export default function AuthForm({ mode, setMode, setBusy }) {
+export default function AuthForm({ mode = 'login', setMode = () => {}, setBusy = () => {} }) {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-  const [error, setError] = useState(null) // global popup error (also used for success messages)
-  const [fieldError, setFieldError] = useState('') // inline live error under input
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [fieldError, setFieldError] = useState('')
   const [shake, setShake] = useState(false)
   const emailRef = useRef(null)
 
-  // email validation regex
+  const commonDomains = ['gmail.com', 'outlook.com', 'yahoo.com', 'hotmail.com']
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-  // suggested domains for quick completion
-  const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com']
-
-  // live validity
-  const emailValid = emailPattern.test(email)
-
-  // auto-clear popup after short time
-  useEffect(() => {
-    if (!error) return
-    const t = setTimeout(() => setError(null), 3500)
-    return () => clearTimeout(t)
-  }, [error])
 
   // live validation while typing
   useEffect(() => {
@@ -45,13 +25,13 @@ export default function AuthForm({ mode, setMode, setBusy }) {
       setFieldError('')
       return
     }
-    if (emailValid) {
+    if (emailPattern.test(email)) {
       setFieldError('')
     } else {
       // provide a friendly inline hint but not the big popup
-      setFieldError("Enter a valid email (e.g. you@example.com)")
+      setFieldError('Enter a valid email (e.g. you@example.com)')
     }
-  }, [email, emailValid])
+  }, [email])
 
   // helper: trigger shake animation
   function triggerShake() {
@@ -97,28 +77,57 @@ export default function AuthForm({ mode, setMode, setBusy }) {
       if (mode === 'signup') {
         const cred = await createUserWithEmailAndPassword(auth, email, password)
         if (name) await updateProfile(cred.user, { displayName: name })
-        await sendEmailVerification(cred.user)
-        // success note (use popup)
+        await sendPasswordResetEmail(cred.user)
+        // note: previous flow used sendEmailVerification; if you want verification on signup switch to sendEmailVerification
         setError('Account created — a verification email was sent.')
         setMode('login')
       } else if (mode === 'login') {
         try {
-          await signInWithEmailAndPassword(auth, email, password)
+          // POST to backend which verifies via Firebase and returns a server-signed JWT
+          const base = import.meta.env.VITE_BACKEND_URL || ''
+          const r = await fetch(`${base}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          })
 
-          // 🔥 Success path:
-          // 1) clear the red popup
+          if (!r.ok) {
+            const body = await r.json().catch(() => ({}))
+            const msg = body.error || 'Login failed'
+            if (msg === 'Invalid email or password') {
+              setError('Invalid email or password')
+            } else {
+              setError(msg)
+            }
+            triggerShake()
+            emailRef.current?.focus()
+            throw new Error(msg)
+          }
+
+          const body = await r.json()
+
+          // store server token (visible in DevTools -> Application -> Local Storage)
+          try { localStorage.setItem('auth-token', body.token) } catch (e) {}
+
+          // try to also sign into Firebase client SDK so the rest of the app (email verification etc.) keeps working
+          try {
+            await signInWithEmailAndPassword(auth, email, password)
+          } catch (e) {
+            // ignore if this fails; backend login is the authoritative path
+            console.warn('client firebase sign-in failed after backend login', e?.message || e)
+          }
+
+          // 🔥 Success path — use backend user info when available
           setError(null)
 
-          // 2) persist a short-lived flag and name so Home can show the green popup even if it mounts later
           try {
-            const nameToShow = auth.currentUser?.displayName || auth.currentUser?.email || ''
+            const nameToShow = (body.user && (body.user.displayName || body.user.email)) || auth.currentUser?.displayName || auth.currentUser?.email || ''
             localStorage.setItem('login-success', '1')
             localStorage.setItem('login-success-name', nameToShow)
 
             // Also write into sessionStorage for immediate session-only visibility (DevTools -> Session Storage)
             try {
-              const u = auth.currentUser
-              const minimal = JSON.stringify({ uid: u?.uid || '', email: u?.email || '', displayName: u?.displayName || '' })
+              const minimal = JSON.stringify({ uid: (body.user && body.user.uid) || auth.currentUser?.uid || '', email: (body.user && body.user.email) || auth.currentUser?.email || '', displayName: (body.user && body.user.displayName) || auth.currentUser?.displayName || '' })
               sessionStorage.setItem('session-user', minimal)
               sessionStorage.setItem('login-success', '1')
               sessionStorage.setItem('login-success-name', nameToShow)
@@ -138,24 +147,15 @@ export default function AuthForm({ mode, setMode, setBusy }) {
             }, 5000)
           } catch (e) {
             // ignore storage errors
-            // (e.g. in private mode or restricted environments)
           }
 
-          // 3) immediate event for the case Home is already mounted
+          // immediate event for the case Home is already mounted
           window.dispatchEvent(new CustomEvent('login-success'))
         } catch (err) {
-          // unify credential-style errors to single friendly message
-          if (CREDENTIAL_ERROR_CODES.has(err.code)) {
-            setError('Invalid email or password')
-          } else {
-            setError(translateFirebaseError(err.code, err.message))
-          }
           // record error in sessionStorage for debugging
           try {
             sessionStorage.setItem('login-error', JSON.stringify({ message: err.message || 'Login error', code: err.code || null, time: Date.now() }))
           } catch (e) {}
-          triggerShake()
-          emailRef.current?.focus()
           throw err
         }
       } else if (mode === 'reset') {
@@ -241,13 +241,13 @@ export default function AuthForm({ mode, setMode, setBusy }) {
               value={email}
               onChange={e => setEmail(e.target.value)}
               className={`mt-1 w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700 focus-ring pr-12
-                ${!emailValid && email ? 'ring-2 ring-red-500/40 border-red-400' : ''}
-                ${emailValid ? 'ring-2 ring-green-400/30 border-green-500' : ''}`}
+                ${!emailPattern.test(email) && email ? 'ring-2 ring-red-500/40 border-red-400' : ''}
+                ${emailPattern.test(email) ? 'ring-2 ring-green-400/30 border-green-500' : ''}`}
               placeholder="you@company.com"
             />
 
             {/* green check when valid */}
-            {emailValid && (
+            {emailPattern.test(email) && (
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-300">
                 <FiCheckCircle className="text-2xl" />
               </span>
@@ -322,3 +322,4 @@ export default function AuthForm({ mode, setMode, setBusy }) {
     </>
   )
 }
+

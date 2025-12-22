@@ -1,12 +1,10 @@
-// src/components/EditEmailModal.jsx
 import React, { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { reauthenticateWithCredential, EmailAuthProvider, updateEmail, updatePassword } from 'firebase/auth'
-import { auth } from '../firebase'
+import { auth, saveUserToFirestore } from '../../firebase'
 import { FiX } from 'react-icons/fi'
-import useTheme from '../hooks/useTheme'
-import ErrorPopup from './ErrorPopup'   // <-- added
-import { saveUserToFirestore } from '../firebase'
+import useTheme from '../../hooks/useTheme'
+import ErrorPopup from '../ErrorPopup'
 
 function resolveTheme(hookTheme) {
   if (typeof window === 'undefined') return hookTheme || 'light'
@@ -29,8 +27,6 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
   const [currentPassword, setCurrentPassword] = useState('')
 
   const [busy, setBusy] = useState(false)
-
-  // NEW POPUP STATE
   const [popup, setPopup] = useState(null)
 
   useEffect(() => {
@@ -47,23 +43,19 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
     setPopup(null)
 
     try {
-      // Reauthenticate
       const cred = EmailAuthProvider.credential(user.email, currentPassword)
       await reauthenticateWithCredential(auth.currentUser, cred)
 
-      // Update Email
       if (wantsEmail && newEmail && newEmail !== user.email) {
         await updateEmail(auth.currentUser, newEmail)
       }
 
-      // Update Password
       if (wantsPassword && newPassword) {
         await updatePassword(auth.currentUser, newPassword)
       }
 
       setPopup('Account updated successfully.')
 
-      // persist changes to Firestore
       try { await saveUserToFirestore(auth.currentUser) } catch (e) { console.warn('Failed to save updated user to Firestore', e) }
 
       setTimeout(() => setOpen(false), 1200)
@@ -71,7 +63,6 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
     } catch (err) {
       console.error(err)
 
-      // FRIENDLY FIREBASE ERRORS
       if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
         setPopup('Incorrect password. Please enter your current password to confirm changes.')
       } else {
@@ -88,7 +79,6 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
   }
 
   const labelText = 'text-gray-700 dark:text-gray-300'
-
   const inputClasses = 'w-full p-3 rounded-lg border focus-ring transition-colors duration-200 bg-gray-50 border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'
 
   return (
@@ -117,7 +107,6 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
               </button>
             </div>
 
-            {/* INPUT FIELDS */}
             <div className="space-y-3">
               <div>
                 <label className={`text-sm ${labelText}`}>New email</label>
@@ -149,7 +138,6 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
                 />
               </div>
 
-              {/* BUTTONS */}
               <div className="flex gap-3 mt-4">
                 <button
                   onClick={() => reauthAndUpdate({
@@ -171,7 +159,6 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
               </div>
             </div>
 
-            {/* ERROR / SUCCESS POPUP */}
             <ErrorPopup message={popup} setMessage={setPopup} />
           </motion.div>
         </motion.div>

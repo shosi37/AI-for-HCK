@@ -4,16 +4,20 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, addDoc, serverTimestamp, query, where, orderBy } from 'firebase/firestore'
 
-// Your Firebase configuration
+// Your Firebase configuration (from environment)
 const firebaseConfig = {
-  apiKey: "AIzaSyBZCprZtv9W51e_ZqAedZ6wTuBeuT6kdHw",
-  authDomain: "ai-chatbot-for-hck.firebaseapp.com",
-  projectId: "ai-chatbot-for-hck",
-  storageBucket: "ai-chatbot-for-hck.appspot.com",   
-  messagingSenderId: "469719977392",
-  appId: "1:469719977392:web:79ba59366913f7281c9a75",
-  measurementId: "G-QV0BXK046N"
-};
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+}
+
+if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+  console.warn('VITE_FIREBASE_API_KEY is not set. Add it to your .env file to initialize Firebase correctly.')
+} 
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

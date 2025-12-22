@@ -1,20 +1,14 @@
-// src/components/ProfileMenu.jsx
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiChevronDown, FiLogOut, FiEdit } from 'react-icons/fi'
 import EditProfileModal from './EditProfileModal'
 import EditEmailModal from './EditEmailModal'
 
-import { useEffect } from 'react' 
-
 export default function ProfileMenu({ user, onSignOut }) {
   const [open, setOpen] = useState(false)
   const [editProfileOpen, setEditProfileOpen] = useState(false)
-  const [editEmailOpen, setEditEmailOpen] = useState(false) 
+  const [editEmailOpen, setEditEmailOpen] = useState(false)
 
-
-
-  // sanitize avatar URLs (handle DiceBear gradient tokens and recognize other providers like AbstractAPI / proxy)
   function sanitizeAvatarUrl(url) {
     try {
       const u = new URL(url)
@@ -83,8 +77,6 @@ export default function ProfileMenu({ user, onSignOut }) {
 
               <div className="my-1 border-t border-gray-200/30 dark:border-white/5"></div>
 
-
-
               <button
                 onClick={() => { onSignOut(); setOpen(false) }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded text-rose-500 hover:bg-gray-50 dark:hover:bg-white/5"
@@ -96,7 +88,6 @@ export default function ProfileMenu({ user, onSignOut }) {
         )}
       </AnimatePresence>
 
-      {/* Modals */}
       <EditProfileModal open={editProfileOpen} setOpen={setEditProfileOpen} user={user} />
       <EditEmailModal open={editEmailOpen} setOpen={setEditEmailOpen} user={user} />
     </div>

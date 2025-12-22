@@ -5,9 +5,9 @@ import AuthForm from './AuthForm'
 import { FcGoogle } from 'react-icons/fc'
 import { FaApple } from 'react-icons/fa'
 import { signInWithPopup } from 'firebase/auth'
-import { auth, googleProvider } from '../firebase'
-import ThemeToggle from './ThemeToggle'
-import BackButton from './BackButton'
+import { auth, googleProvider } from '../../firebase'
+import ThemeToggle from '../ThemeToggle'
+import BackButton from '../BackButton'
 
 export default function AuthCard() {
   const [mode, setMode] = useState('login')

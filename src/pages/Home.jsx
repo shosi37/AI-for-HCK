@@ -1,6 +1,6 @@
 // src/pages/Home.jsx
 import React, { useEffect, useState } from 'react'
-import ProfileMenu from '../components/ProfileMenu'
+import ProfileMenu from '../components/profile/ProfileMenu'
 import ThemeToggle from '../components/ThemeToggle'
 import SuccessPopup from '../components/SuccessPopup'
 import { motion } from 'framer-motion'

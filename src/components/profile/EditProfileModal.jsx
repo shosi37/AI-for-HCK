@@ -1,12 +1,11 @@
-// src/components/EditProfileModal.jsx
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { updateProfile } from 'firebase/auth'
-import { auth, saveUserToFirestore } from '../firebase'
+import { auth, saveUserToFirestore } from '../../firebase'
 import GeneratedAvatarPicker from './GeneratedAvatarPicker'
-import ErrorPopup from './ErrorPopup'
+import ErrorPopup from '../ErrorPopup'
 import { FiX, FiCheck } from 'react-icons/fi'
-import useTheme from '../hooks/useTheme'
+import useTheme from '../../hooks/useTheme'
 
 function resolveTheme(hookTheme) {
   if (typeof window === 'undefined') return hookTheme || 'light'
@@ -29,7 +28,6 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState(null)
 
-  // debug: log when modal mounts/opens
   useEffect(() => {
     if (open) console.log('EditProfileModal opened — user:', user)
   }, [open, user])
@@ -67,7 +65,6 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
         return
       }
 
-      // refresh current user and persist to Firestore so admin panels and user lists see the change
       try { await auth.currentUser.reload() } catch (e) { console.warn('Failed to reload current user', e) }
       try { await saveUserToFirestore(auth.currentUser) } catch (e) { console.warn('Failed to save updated user to Firestore', e) }
 
@@ -86,7 +83,6 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
     <AnimatePresence>
       {open && (
         <motion.div className="fixed inset-0 z-[99999] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        {/* Backdrop for clarity and to ensure click-away closes the modal visually */}
         <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} aria-hidden="true" />
           <motion.div className={`relative w-full max-w-md rounded-2xl p-6 shadow-2xl bg-white dark:bg-gray-900 transition-colors duration-200`} initial={{ scale: 0.98 }} animate={{ scale: 1 }} exit={{ scale: 0.98 }}>
             <div className="flex items-center justify-between mb-4">

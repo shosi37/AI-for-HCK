@@ -1,8 +1,7 @@
-// src/components/Profile.jsx
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { sendEmailVerification } from 'firebase/auth'
-import BackButton from './BackButton'
+import BackButton from '../BackButton'
 
 export default function Profile({ user, onSignOut }) {
   const [sent, setSent] = useState(false)
@@ -23,7 +22,6 @@ export default function Profile({ user, onSignOut }) {
     }
   }
 
-  // Back button: for Option A -> go to login (sign out)
   function handleBackToLogin() {
     onSignOut()
   }

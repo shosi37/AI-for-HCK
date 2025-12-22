@@ -1,47 +1,35 @@
-// src/components/GeneratedAvatarPicker.jsx
 import React, { useMemo, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import useTheme from '../hooks/useTheme'
+import useTheme from '../../hooks/useTheme'
 
-/**
- * Robust GeneratedAvatarPicker using AbstractAPI avatar endpoint with preloading/fallback.
- * Respects app theme and provides a randomized seed grid; safe fallback image used when provider fails.
- *
- * Props:
- *  - name: string (seed base)
- *  - currentUrl: string (optional)
- *  - onSelect(url: string) => void
- */
 export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSelect }) {
-  const [theme] = useTheme()                // get current theme
+  const [theme] = useTheme()
   const [seedBase, setSeedBase] = useState((name && name.trim()) || `user`)
   const [variantIndex, setVariantIndex] = useState(0)
-  const [loadingMap, setLoadingMap] = useState({}) // { url: 'loading'|'ok'|'error' }
+  const [loadingMap, setLoadingMap] = useState({})
 
-  // simple variants array used for UI randomness (AbstractAPI ignores style param)
   const variants = ['v1','v2','v3','v4','v5','v6']
+  const AVATAR_API_KEY = import.meta.env.VITE_AVATAR_API_KEY || ''
 
-  // AbstractAPI key (preferred: set VITE_AVATAR_API_KEY in your .env; fallback to provided key)
-  const AVATAR_API_KEY = import.meta.env.VITE_AVATAR_API_KEY || '30f2351721d942388fad70debe5eb231'
-
-  // Build seeds
   const seeds = useMemo(() => {
     const base = seedBase || 'user'
     return Array.from({ length: 8 }).map((_, i) => `${base}-${variantIndex}-${i}`)
   }, [seedBase, variantIndex])
 
-  // Build candidate AbstractAPI URLs for robustness
-  // AbstractAPI avatar endpoint: https://avatars.abstractapi.com/v1/?api_key=KEY&name=...&size=120
-  function avatarCandidates(seed /* style ignored for AbstractAPI */) {
+  function avatarCandidates(seed) {
     const s = encodeURIComponent(seed)
     const base = `https://avatars.abstractapi.com/v1/`
-    const preferred = `${base}?api_key=${AVATAR_API_KEY}&name=${s}&size=120`
-    const fallback = `${base}?api_key=${AVATAR_API_KEY}&name=${s}`
+    if (AVATAR_API_KEY) {
+      const preferred = `${base}?api_key=${AVATAR_API_KEY}&name=${s}&size=120`
+      const fallback = `${base}?api_key=${AVATAR_API_KEY}&name=${s}`
+      return [preferred, fallback]
+    }
+    // If no API key is configured, return the public endpoints (may be rate-limited or unusable)
+    const preferred = `${base}?name=${s}&size=120`
+    const fallback = `${base}?name=${s}`
     return [preferred, fallback]
   }
 
-  // Try each candidate in order and return the first working URL (or null)
-  // Use Image() to detect load success to avoid CORS fetch issues.
   function findWorkingUrl(candidates) {
     return new Promise((resolve) => {
       let settled = false
@@ -51,22 +39,18 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
         const img = new Image()
         img.onload = () => { if (!settled) { settled = true; resolve(url) } }
         img.onerror = () => { if (!settled) { tryNext(i + 1) } }
-        // start load
         img.src = url
       }
       tryNext(0)
     })
   }
 
-  // Preload whenever seeds, variant or theme change
   useEffect(() => {
     let active = true
     ;(async () => {
       for (const s of seeds) {
-        // style is only UI-facing; AbstractAPI ignores style, so we pass the seed only
         const styleForSeed = variants[variantIndex % variants.length]
         const candidates = avatarCandidates(s)
-        // key by seed so we never set the image src to a URL that failed
         setLoadingMap((m) => ({ ...m, [s]: { status: 'loading' } }))
         const working = await findWorkingUrl(candidates)
         if (!active) return
@@ -75,14 +59,13 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
       }
     })()
     return () => { active = false }
-  }, [seeds, variantIndex, theme]) // re-run on theme change
+  }, [seeds, variantIndex, theme])
 
   function handleRandomize() {
     setVariantIndex((v) => (v + 1) % variants.length)
     setSeedBase(`rnd-${Math.floor(Math.random() * 9999)}`)
   }
 
-  // Fallback data URL (tiny inline SVG) for unreachable avatars
   function fallbackDataUrl(seed) {
     const initials = (seed || 'U').slice(0, 2).toUpperCase()
     const bg = theme === 'dark' ? '#111827' : '#ffffff'
@@ -91,7 +74,6 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
   }
 
-  // which style is active for preview
   const style = variants[variantIndex % variants.length]
 
   return (
@@ -124,8 +106,7 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
               onClick={() => onSelect && onSelect(status === 'ok' && workingUrl ? workingUrl : fallbackDataUrl(s))}
               className={`relative rounded-lg overflow-hidden border p-1
                 ${isCurrent ? 'border-indigo-400 ring-2 ring-indigo-400/30' : 'border-transparent'}
-                ${theme === 'dark' ? 'bg-gray-900' : 'bg-white shadow-sm'}`}
-            >
+                ${theme === 'dark' ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
               <div className={`w-full h-20 flex items-center justify-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
                 {status === 'loading' ? (
                   <div className="flex items-center justify-center">
@@ -135,12 +116,7 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
                     </svg>
                   </div>
                 ) : (
-                  <img
-                    src={showSrc}
-                    alt={`avatar-${s}`}
-                    className="w-full h-20 object-cover block"
-                    onError={(e) => { e.currentTarget.src = fallbackDataUrl(s) }}
-                  />
+                  <img src={showSrc} alt={`avatar-${s}`} className="w-full h-20 object-cover block" onError={(e) => { e.currentTarget.src = fallbackDataUrl(s) }} />
                 )}
               </div>
 
@@ -150,9 +126,7 @@ export default function GeneratedAvatarPicker({ name = '', currentUrl = '', onSe
         })}
       </div>
 
-      <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-        Avatars generated by AbstractAPI. Tip: set <code>VITE_AVATAR_API_KEY</code> in your .env to use your own key.
-      </div>
+      <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">Avatars generated by AbstractAPI. Tip: set <code>VITE_AVATAR_API_KEY</code> in your .env to use your own key.</div>
     </div>
   )
 }
