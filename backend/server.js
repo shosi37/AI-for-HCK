@@ -80,8 +80,20 @@ app.post('/api/login', async (req, res) => {
     return res.json({ token, user: payload, firebaseIdToken: fb.idToken })
   } catch (err) {
     // relay Firebase error message as friendly message, but avoid leaking internal codes
+    // dump full error for server logs to help debug (do not send raw to client)
     console.error('login error', err.response?.data || err.message)
-    const msg = err.response?.data?.error?.message || err.message || 'Login failed'
+
+    // Normalize message from multiple possible shapes returned by firebase/axios
+    let msg = 'Login failed'
+    if (err.response && err.response.data) {
+      const d = err.response.data
+      if (typeof d === 'string') msg = d
+      else if (typeof d.error === 'string') msg = d.error
+      else if (d.error && typeof d.error.message === 'string') msg = d.error.message
+      else if (typeof d.message === 'string') msg = d.message
+    } else if (err.message) {
+      msg = err.message
+    }
 
     // treat a variety of firebase credential error messages as bad credentials (401)
     const credentialIndicators = [
