@@ -1,126 +1,167 @@
-// backend/server.js
 require('dotenv').config()
 const express = require('express')
-const axios = require('axios')
 const cors = require('cors')
-const jwt = require('jsonwebtoken')
-const admin = require('firebase-admin')
-
-const app = express()
 const cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
+const admin = require('firebase-admin')
 const sessions = require('./sessions')
+const axios = require('axios')
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', credentials: true }))
-app.use(express.json())
-app.use(cookieParser())
-
+/* ---------------- ENV ---------------- */
 const {
-  FIREBASE_API_KEY,
-  SERVICE_ACCOUNT_JSON,
   SERVICE_ACCOUNT_PATH,
   JWT_SECRET,
+  FIREBASE_API_KEY,
   PORT = 4000,
 } = process.env
 
-// Use a runtime secret; if not set, fall back to a dev secret and warn
-const SECRET = JWT_SECRET || 'dev-secret'
-if (!JWT_SECRET) console.warn('JWT_SECRET is not set. Using dev-secret for local testing — set JWT_SECRET in backend/.env for production')
+if (!SERVICE_ACCOUNT_PATH) throw new Error('SERVICE_ACCOUNT_PATH missing')
+if (!JWT_SECRET) throw new Error('JWT_SECRET missing')
 
-// Initialize Firebase Admin
-if (SERVICE_ACCOUNT_JSON) {
-  try {
-    const sa = JSON.parse(SERVICE_ACCOUNT_JSON)
-    admin.initializeApp({ credential: admin.credential.cert(sa) })
-  } catch (e) {
-    console.error('Failed to parse SERVICE_ACCOUNT_JSON', e.message)
-  }
-} else if (SERVICE_ACCOUNT_PATH) {
-  try {
-    const sa = require(SERVICE_ACCOUNT_PATH)
-    admin.initializeApp({ credential: admin.credential.cert(sa) })
-  } catch (e) {
-    console.error('Failed to load service account from path', SERVICE_ACCOUNT_PATH, e.message)
-  }
-} else {
-  console.warn('Firebase Admin not initialized. PROFILE endpoint will only return token payload and sessions will use a local file fallback.')
+/* ---------------- Firebase Admin ---------------- */
+admin.initializeApp({
+  credential: admin.credential.cert(require(SERVICE_ACCOUNT_PATH)),
+})
+
+/* ---------------- App ---------------- */
+const app = express()
+
+/* ---------------- CORS (FIXED) ---------------- */
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+]
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true)
+    if (allowedOrigins.includes(origin)) return cb(null, true)
+    return cb(new Error('Blocked by CORS: ' + origin))
+  },
+  credentials: true,
+}))
+
+// 🔥 REQUIRED for preflight
+app.options('*', cors())
+
+app.use(express.json())
+app.use(cookieParser())
+
+/* ---------------- Utils ---------------- */
+const signAccessToken = (payload) =>
+  jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' })
+
+const setRefreshCookie = (res, token) => {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: false, // local dev
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  })
 }
 
-// Migrate any existing file-based sessions into Firestore if admin is present
-(async () => {
-  if (admin.apps.length) {
-    try {
-      const result = await sessions.migrateFromFileDb()
-      if (result && result.migrated) console.log(`sessions migration: migrated ${result.migrated}`)
-    } catch (e) {
-      console.warn('sessions migration failed', e.message)
-    }
+/* ---------------- Routes ---------------- */
+
+app.get('/api', (_, res) => res.json({ ok: true }))
+
+/**
+ * Login with Firebase ID token
+ */
+app.post('/api/login-token', async (req, res) => {
+  const { idToken } = req.body
+  if (!idToken) return res.status(400).json({ error: 'Missing idToken' })
+
+  let decoded
+  try {
+    decoded = await admin.auth().verifyIdToken(idToken)
+  } catch (e) {
+    console.error('login-token verify failed', e && (e.stack || e.message) || e)
+    return res.status(401).json({ error: 'Invalid Firebase token' })
   }
-})()
+
+  const payload = {
+    uid: decoded.uid,
+    email: decoded.email || '',
+    displayName: decoded.name || '',
+    emailVerified: !!decoded.email_verified,
+  }
+
+  const accessToken = signAccessToken(payload)
+
+  const refreshToken = crypto.randomBytes(64).toString('hex')
+  const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
+
+  try {
+    await sessions.createSession({
+      uid: payload.uid,
+      tokenHash: refreshHash,
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      meta: payload,
+    })
+  } catch (e) {
+    console.error('createSession failed for login-token', e && (e.stack || e.message) || e)
+  }
+
+  setRefreshCookie(res, refreshToken)
+  console.log('login-token success for uid', payload.uid, 'email', payload.email)
+  res.json({ token: accessToken, user: payload })
+})
 
 
-// Utility: call Firebase REST sign-in to verify email/password
-async function firebaseSignInWithPassword(email, password) {
-  if (!FIREBASE_API_KEY) throw new Error('Missing FIREBASE_API_KEY')
-  const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`
-  const res = await axios.post(url, { email, password, returnSecureToken: true })
-  return res.data // contains idToken, localId (uid), email, displayName, emailVerified
-}
-
-// health check to make debugging easier
-app.get('/api', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }))
-
+/**
+ * Login with email+password (legacy/support for environments without ID-token exchange)
+ */
 app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body || {}
+  const { email, password, dev } = req.body || {}
   if (!email || !password) return res.status(400).json({ error: 'Missing email or password' })
 
-  try {
-    const fb = await firebaseSignInWithPassword(email, password)
-    const uid = fb.localId
-
-    // optionally verify user exists via Admin
-    let userRecord = null
-    try {
-      if (admin.apps.length) {
-        userRecord = await admin.auth().getUser(uid)
-      }
-    } catch (e) {
-      // ignore admin lookup failure
-      console.warn('admin lookup failed', e.message)
+  // quick config guard
+  if (!FIREBASE_API_KEY) {
+    // In development allow an explicit dev-mode credentialless login when `dev: true` is passed
+    if (process.env.NODE_ENV !== 'production' && dev) {
+      console.warn('DEV login used (FIREBASE_API_KEY missing) — creating a local dev session for', email)
+      const uid = `dev:${email}`
+      const payload = { uid, email, displayName: email.split('@')[0], emailVerified: false }
+      const accessToken = signAccessToken(payload)
+      const refreshToken = crypto.randomBytes(64).toString('hex')
+      const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
+      try {
+        await sessions.createSession({ uid, tokenHash: refreshHash, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, meta: payload })
+      } catch (e) { console.error('createSession failed for dev login', e && (e.stack || e.message) || e) }
+      setRefreshCookie(res, refreshToken)
+      return res.json({ token: accessToken, user: payload })
     }
+
+    return res.status(500).json({ error: 'Server configuration error: Missing FIREBASE_API_KEY. Set it in backend/.env or pass dev:true for local testing.' })
+  }
+
+  try {
+    // call Firebase REST sign-in API
+    const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`
+    const r = await axios.post(url, { email, password, returnSecureToken: true })
+    const fb = r.data
+    const uid = fb.localId
 
     const payload = {
       uid,
-      email: fb.email,
-      displayName: fb.displayName || (userRecord && userRecord.displayName) || '',
-      emailVerified: fb.emailVerified || (userRecord && userRecord.emailVerified) || false,
+      email: fb.email || '',
+      displayName: fb.displayName || '',
+      emailVerified: fb.emailVerified || false,
     }
 
-    // short-lived access token (keeps sessions limited)
-    const accessToken = jwt.sign(payload, SECRET, { expiresIn: process.env.ACCESS_EXPIRES || '15m' })
-
-    // create a refresh token, persist a hash server-side and set secure HttpOnly cookie
+    const accessToken = signAccessToken(payload)
     const refreshToken = crypto.randomBytes(64).toString('hex')
     const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
-    const refreshExpiryMs = parseInt(process.env.REFRESH_EXPIRES_MS || String(30 * 24 * 60 * 60 * 1000), 10) // default 30 days
-    const expiresAt = Date.now() + refreshExpiryMs
 
-    await sessions.createSession({ uid, tokenHash: refreshHash, expiresAt, meta: payload })
+    try {
+      await sessions.createSession({ uid, tokenHash: refreshHash, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, meta: payload })
+    } catch (e) { console.error('createSession failed for login', e && (e.stack || e.message) || e) }
 
-    // set HttpOnly cookie (secure in production)
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: refreshExpiryMs
-    })
-
-    // log a short success message to help debug frontend login flow
+    setRefreshCookie(res, refreshToken)
     console.log('login success for uid', uid, 'email', fb.email)
-
     return res.json({ token: accessToken, user: payload })
   } catch (err) {
-    // relay Firebase error message as friendly message, but avoid leaking internal codes
     console.error('login error', {
       status: err.response?.status,
       url: err.config?.url,
@@ -128,23 +169,11 @@ app.post('/api/login', async (req, res) => {
       message: err.message
     })
 
-    // Normalize message from multiple possible shapes returned by firebase/axios
+    const d = err.response && err.response.data
     let msg = 'Login failed'
-    if (err.response && err.response.data) {
-      const d = err.response.data
-      if (typeof d === 'string') msg = d
-      else if (typeof d.error === 'string') msg = d.error
-      else if (d.error && typeof d.error.message === 'string') msg = d.error.message
-      else if (typeof d.message === 'string') msg = d.message
-    } else if (err.message) {
-      msg = err.message
-    }
+    if (d && d.error && d.error.message) msg = d.error.message
 
-    const credentialIndicators = [
-      'INVALID_PASSWORD', 'EMAIL_NOT_FOUND', 'INVALID_LOGIN_CREDENTIALS',
-      'INVALID_EMAIL', 'USER_NOT_FOUND', 'EMAIL_EXISTS'
-    ]
-
+    const credentialIndicators = ['INVALID_PASSWORD','EMAIL_NOT_FOUND','INVALID_EMAIL','USER_NOT_FOUND','INVALID_LOGIN_CREDENTIALS']
     if (credentialIndicators.some(k => msg && msg.toString().includes(k))) {
       return res.status(401).json({ error: 'Invalid email or password' })
     }
@@ -153,92 +182,192 @@ app.post('/api/login', async (req, res) => {
   }
 })
 
-// Auth middleware to verify server JWT
-function verifyToken(req, res, next) {
-  const header = req.headers.authorization || ''
-  const m = header.match(/^Bearer (.+)$/)
-  if (!m) return res.status(401).json({ error: 'Missing token' })
-  const token = m[1]
+/**
+ * Auth middleware
+ */
+const requireAuth = (req, res, next) => {
+  const h = req.headers.authorization
+  if (!h) return res.status(401).json({ error: 'Missing token' })
+
   try {
-    const payload = jwt.verify(token, SECRET)
-    req.user = payload
+    req.user = jwt.verify(h.replace('Bearer ', ''), JWT_SECRET)
     next()
-  } catch (e) {
-    return res.status(401).json({ error: 'Invalid token' })
+  } catch {
+    res.status(401).json({ error: 'Invalid token' })
   }
 }
 
-app.get('/api/profile', verifyToken, async (req, res) => {
-  // if admin available, fetch latest user info
-  if (admin.apps.length) {
-    try {
-      const rec = await admin.auth().getUser(req.user.uid)
-      const u = {
-        uid: rec.uid,
-        email: rec.email,
-        displayName: rec.displayName || req.user.displayName || '',
-        emailVerified: rec.emailVerified || false,
-      }
-      return res.json({ user: u })
-    } catch (e) {
-      // fallback to token payload
-      console.warn('admin getUser failed', e.message)
-    }
-  }
-
-  return res.json({ user: req.user })
+/**
+ * Profile
+ */
+app.get('/api/profile', requireAuth, async (req, res) => {
+  res.json({ user: req.user })
 })
 
-// Refresh endpoint to rotate refresh tokens and issue a new access token
-app.post('/api/refresh', async (req, res) => {
-  try {
-    const rt = req.cookies && req.cookies.refreshToken
-    if (!rt) return res.status(401).json({ error: 'Missing refresh token' })
-    const hash = crypto.createHash('sha256').update(rt).digest('hex')
-    const session = await sessions.findByTokenHash(hash)
-    if (!session || session.expiresAt < Date.now()) {
-      return res.status(401).json({ error: 'Invalid refresh token' })
+// Dev-only helper to impersonate a user (disabled in production)
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/__dev/impersonate', async (req, res) => {
+    const u = req.body && req.body.user ? req.body.user : req.body
+    if (!u || !u.uid) return res.status(400).json({ error: 'Missing user object with uid' })
+    const payload = {
+      uid: u.uid,
+      email: u.email || '',
+      displayName: u.displayName || '',
+      emailVerified: !!u.emailVerified,
+      photoURL: u.photoURL || ''
     }
+    const accessToken = signAccessToken(payload)
+    const refreshToken = crypto.randomBytes(64).toString('hex')
+    const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
+    const refreshExpiryMs = 30 * 24 * 60 * 60 * 1000
+    try { await sessions.createSession({ uid: payload.uid, tokenHash: refreshHash, expiresAt: Date.now() + refreshExpiryMs, meta: payload }) } catch (e) { console.error('createSession failed in impersonate', e && (e.stack || e.message) || e) }
+    setRefreshCookie(res, refreshToken)
+    return res.json({ token: accessToken, user: payload })
+  })
+}
 
-    // use stored meta (payload) when available
-    const payload = session.meta || { uid: session.uid }
-    const newAccess = jwt.sign(payload, SECRET, { expiresIn: process.env.ACCESS_EXPIRES || '15m' })
+/**
+ * Refresh
+ */
+app.post('/api/refresh', async (req, res) => {
+  const rt = req.cookies.refreshToken
+  if (!rt) return res.status(401).json({ error: 'Missing refresh token' })
 
-    // rotate refresh token
-    const newRt = crypto.randomBytes(64).toString('hex')
-    const newHash = crypto.createHash('sha256').update(newRt).digest('hex')
-    const refreshExpiryMs = parseInt(process.env.REFRESH_EXPIRES_MS || String(30 * 24 * 60 * 60 * 1000), 10)
-    const newExpiresAt = Date.now() + refreshExpiryMs
-    await sessions.rotateSession(hash, newHash, newExpiresAt)
+  const hash = crypto.createHash('sha256').update(rt).digest('hex')
+  const session = await sessions.findByTokenHash(hash)
 
-    res.cookie('refreshToken', newRt, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: refreshExpiryMs
+  if (!session || session.expiresAt < Date.now()) {
+    return res.status(401).json({ error: 'Invalid refresh token' })
+  }
+
+  const newAccess = signAccessToken(session.meta)
+  res.json({ token: newAccess })
+})
+
+/**
+ * Logout
+ */
+app.post('/api/logout', async (req, res) => {
+  const rt = req.cookies.refreshToken
+  if (rt) {
+    const hash = crypto.createHash('sha256').update(rt).digest('hex')
+    await sessions.deleteByTokenHash(hash)
+  }
+  res.clearCookie('refreshToken')
+  res.json({ ok: true })
+})
+
+/* ---------------- Google OAuth (server-side) ---------------- */
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI
+
+function buildGoogleAuthUrl(login_hint) {
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GOOGLE_REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'offline',
+    include_granted_scopes: 'true',
+    prompt: 'consent'
+  })
+  if (login_hint) params.set('login_hint', login_hint)
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+}
+
+app.get('/api/oauth/google/start', (req, res) => {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REDIRECT_URI) {
+    return res.status(500).json({ error: 'Google OAuth not configured on server' })
+  }
+
+  const redirectTo = req.query.redirect || '/'
+  const ok = allowedOrigins.some(o => redirectTo.startsWith(o)) || redirectTo.startsWith('/')
+  if (!ok) return res.status(400).json({ error: 'Invalid redirect' })
+
+  const login_hint = req.query.login_hint || ''
+  const nonce = crypto.randomBytes(16).toString('hex')
+  const stateObj = { nonce, redirectTo }
+  const state = Buffer.from(JSON.stringify(stateObj)).toString('base64url')
+
+  res.cookie('oauth_state', nonce, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 5 * 60 * 1000 })
+  const url = buildGoogleAuthUrl(login_hint) + `&state=${encodeURIComponent(state)}`
+  return res.redirect(url)
+})
+
+app.get('/api/oauth/google/callback', async (req, res) => {
+  try {
+    const { code, state } = req.query
+    if (!code) return res.status(400).send('Missing code')
+    if (!state) return res.status(400).send('Missing state')
+
+    let stateObj
+    try { stateObj = JSON.parse(Buffer.from(state, 'base64url').toString('utf8')) } catch (e) { return res.status(400).send('Invalid state') }
+
+    const nonceCookie = req.cookies && req.cookies.oauth_state
+    if (!nonceCookie || nonceCookie !== stateObj.nonce) return res.status(400).send('Invalid state or expired')
+
+    const params = new URLSearchParams({
+      code,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      grant_type: 'authorization_code'
     })
 
-    return res.json({ token: newAccess })
-  } catch (e) {
-    console.error('refresh error', e)
-    return res.status(500).json({ error: 'Refresh failed' })
-  }
-})
+    const tokenRes = await axios.post('https://oauth2.googleapis.com/token', params.toString(), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+    const { access_token } = tokenRes.data
 
-// Logout: remove current refresh token session and clear cookie
-app.post('/api/logout', async (req, res) => {
-  try {
-    const rt = req.cookies && req.cookies.refreshToken
-    if (rt) {
-      const hash = crypto.createHash('sha256').update(rt).digest('hex')
-      await sessions.deleteByTokenHash(hash)
+    const uRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${access_token}` } })
+    const u = uRes.data
+
+    const payload = {
+      uid: `google:${u.sub}`,
+      email: u.email || '',
+      displayName: u.name || '',
+      emailVerified: !!u.email_verified,
+      photoURL: u.picture || ''
     }
-    res.clearCookie('refreshToken')
-    return res.json({ ok: true })
+
+    const serverAccess = signAccessToken(payload)
+    const refreshToken = crypto.randomBytes(64).toString('hex')
+    const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
+    const refreshExpiryMs = 30 * 24 * 60 * 60 * 1000
+
+    try {
+      await sessions.createSession({ uid: payload.uid, tokenHash: refreshHash, expiresAt: Date.now() + refreshExpiryMs, meta: payload })
+    } catch (e) {
+      console.error('createSession failed during oauth', e && (e.stack || e.message) || e)
+    }
+
+    setRefreshCookie(res, refreshToken)
+    res.clearCookie('oauth_state')
+
+    const redirectTo = stateObj.redirectTo || '/'
+
+    // Create a Firebase Custom Token so the client can sign in with the Firebase client SDK
+    let firebaseCustomToken = null
+    try {
+      // Use the payload.uid as the uid in the custom token; include minimal claims
+      firebaseCustomToken = await admin.auth().createCustomToken(payload.uid, { provider: 'google', email: payload.email })
+      console.log('OAuth: created Firebase custom token for', payload.uid)
+    } catch (e) {
+      console.error('Failed to create Firebase custom token during OAuth callback', e && (e.stack || e.message) || e)
+    }
+
+    // Include the server access token and (if available) the Firebase custom token in the fragment
+    const fragmentParts = [`access_token=${encodeURIComponent(serverAccess)}`]
+    if (firebaseCustomToken) fragmentParts.push(`firebase_custom_token=${encodeURIComponent(firebaseCustomToken)}`)
+    const fragment = `#${fragmentParts.join('&')}`
+
+    return res.redirect(`${redirectTo}${fragment}`)
   } catch (e) {
-    console.error('logout error', e)
-    return res.status(500).json({ error: 'Logout failed' })
+    console.error('oauth callback error', e && (e.stack || e.message) || e)
+    return res.status(500).send('OAuth error')
   }
 })
 
-app.listen(PORT, () => console.log(`Backend listening on http://localhost:${PORT}`))
+/* ---------------- Start ---------------- */
+app.listen(PORT, () =>
+  console.log(`✅ Backend running on http://localhost:${PORT}`)
+)

@@ -1,157 +1,161 @@
-// sessions.js — Firestore-backed sessions with file fallback
+const admin = require('firebase-admin')
 const fs = require('fs')
 const path = require('path')
-const { randomUUID } = require('crypto')
-const admin = require('firebase-admin')
+const crypto = require('crypto')
 
-const DB = path.join(__dirname, 'sessions.json')
-const COLLECTION = process.env.SESSIONS_COLLECTION || 'sessions'
+const COLLECTION = 'sessions'
+const FILE_PATH = path.join(__dirname, 'sessions.json')
 
-function fileRead() {
-  try {
-    if (!fs.existsSync(DB)) return { sessions: [] }
-    const raw = fs.readFileSync(DB, 'utf8')
-    return JSON.parse(raw || '{"sessions": []}')
-  } catch (e) {
-    console.error('sessions file read error', e.message)
-    return { sessions: [] }
+function ensureFile() {
+  if (!fs.existsSync(FILE_PATH)) {
+    fs.writeFileSync(FILE_PATH, JSON.stringify({ sessions: [] }, null, 2))
   }
 }
 
-function fileWrite(data) {
+function readFileStore() {
+  ensureFile()
+  const raw = fs.readFileSync(FILE_PATH, 'utf8')
   try {
-    fs.writeFileSync(DB, JSON.stringify(data, null, 2))
-    return true
+    return JSON.parse(raw).sessions || []
   } catch (e) {
-    console.error('sessions file write error', e.message)
-    return false
+    console.warn('sessions.json parse failed, resetting file', e && e.message)
+    fs.writeFileSync(FILE_PATH, JSON.stringify({ sessions: [] }, null, 2))
+    return []
   }
 }
 
-// Firestore helpers (require admin to be initialized)
-function firestoreAvailable() {
-  return !!(admin && admin.apps && admin.apps.length)
+function writeFileStore(sessions) {
+  fs.writeFileSync(FILE_PATH, JSON.stringify({ sessions }, null, 2))
 }
 
-async function createSessionFirestore({ uid, tokenHash, expiresAt, meta = {} }) {
-  const db = admin.firestore()
-  const doc = db.collection(COLLECTION).doc()
-  const s = { id: doc.id, uid, tokenHash, expiresAt, meta, createdAt: Date.now() }
-  await doc.set(s)
-  return s
-}
+async function createSession({ uid, tokenHash, expiresAt, meta }) {
+  // Prefer Firestore if available; fall back to file store on any error
+  if (admin.apps.length) {
+    try {
+      const db = admin.firestore()
+      const ref = db.collection(COLLECTION).doc()
+      const session = {
+        id: ref.id,
+        uid,
+        tokenHash,
+        expiresAt,
+        meta,
+        createdAt: Date.now(),
+      }
+      await ref.set(session)
+      return session
+    } catch (e) {
+      console.warn('createSession firestore failed, falling back to file store', e && e.message)
+    }
+  }
 
-async function findByTokenHashFirestore(tokenHash) {
-  const db = admin.firestore()
-  const q = await db.collection(COLLECTION).where('tokenHash', '==', tokenHash).limit(1).get()
-  if (q.empty) return null
-  const doc = q.docs[0]
-  return doc.data()
-}
-
-async function deleteByTokenHashFirestore(tokenHash) {
-  const db = admin.firestore()
-  const q = await db.collection(COLLECTION).where('tokenHash', '==', tokenHash).get()
-  if (q.empty) return false
-  const batch = db.batch()
-  q.docs.forEach(d => batch.delete(d.ref))
-  await batch.commit()
-  return true
-}
-
-async function rotateSessionFirestore(oldHash, newHash, newExpiresAt) {
-  const db = admin.firestore()
-  const q = await db.collection(COLLECTION).where('tokenHash', '==', oldHash).limit(1).get()
-  if (q.empty) return null
-  const doc = q.docs[0]
-  await doc.ref.update({ tokenHash: newHash, expiresAt: newExpiresAt })
-  const updated = await doc.ref.get()
-  return updated.data()
-}
-
-// Public API: choose Firestore when available, else fallback to file
-async function createSession(opts) {
-  if (firestoreAvailable()) return createSessionFirestore(opts)
-  return createSessionFile(opts)
+  // file store fallback
+  const sessions = readFileStore()
+  const id = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex')
+  const session = { id, uid, tokenHash, expiresAt, meta, createdAt: Date.now() }
+  sessions.push(session)
+  writeFileStore(sessions)
+  return session
 }
 
 async function findByTokenHash(tokenHash) {
-  if (firestoreAvailable()) return findByTokenHashFirestore(tokenHash)
-  return findByTokenHashFile(tokenHash)
-}
+  if (admin.apps.length) {
+    try {
+      const db = admin.firestore()
+      const q = await db
+        .collection(COLLECTION)
+        .where('tokenHash', '==', tokenHash)
+        .limit(1)
+        .get()
 
-async function deleteByTokenHash(tokenHash) {
-  if (firestoreAvailable()) return deleteByTokenHashFirestore(tokenHash)
-  return deleteByTokenHashFile(tokenHash)
+      if (q.empty) return null
+      return q.docs[0].data()
+    } catch (e) {
+      console.warn('findByTokenHash firestore failed, falling back to file store', e && e.message)
+    }
+  }
+
+  const sessions = readFileStore()
+  return sessions.find(s => s.tokenHash === tokenHash) || null
 }
 
 async function rotateSession(oldHash, newHash, newExpiresAt) {
-  if (firestoreAvailable()) return rotateSessionFirestore(oldHash, newHash, newExpiresAt)
-  return rotateSessionFile(oldHash, newHash, newExpiresAt)
-}
+  if (admin.apps.length) {
+    try {
+      const db = admin.firestore()
+      const q = await db
+        .collection(COLLECTION)
+        .where('tokenHash', '==', oldHash)
+        .limit(1)
+        .get()
 
-// File-based implementations (kept for local dev when admin not configured)
-async function createSessionFile({ uid, tokenHash, expiresAt, meta = {} }) {
-  const db = fileRead()
-  const s = { id: randomUUID(), uid, tokenHash, expiresAt, meta, createdAt: Date.now() }
-  db.sessions = db.sessions.filter(x => !(x.uid === uid && x.tokenHash === tokenHash))
-  db.sessions.push(s)
-  fileWrite(db)
-  return s
-}
+      if (q.empty) return null
 
-async function findByTokenHashFile(tokenHash) {
-  const db = fileRead()
-  return db.sessions.find(s => s.tokenHash === tokenHash) || null
-}
+      const doc = q.docs[0]
+      await doc.ref.update({ tokenHash: newHash, expiresAt: newExpiresAt })
+      return true
+    } catch (e) {
+      console.warn('rotateSession firestore failed, falling back to file store', e && e.message)
+    }
+  }
 
-async function deleteByTokenHashFile(tokenHash) {
-  const db = fileRead()
-  const before = db.sessions.length
-  db.sessions = db.sessions.filter(s => s.tokenHash !== tokenHash)
-  fileWrite(db)
-  return db.sessions.length !== before
-}
-
-async function rotateSessionFile(oldHash, newHash, newExpiresAt) {
-  const db = fileRead()
-  const idx = db.sessions.findIndex(s => s.tokenHash === oldHash)
+  const sessions = readFileStore()
+  const idx = sessions.findIndex(s => s.tokenHash === oldHash)
   if (idx === -1) return null
-  db.sessions[idx].tokenHash = newHash
-  db.sessions[idx].expiresAt = newExpiresAt
-  fileWrite(db)
-  return db.sessions[idx]
+  sessions[idx].tokenHash = newHash
+  sessions[idx].expiresAt = newExpiresAt
+  writeFileStore(sessions)
+  return true
 }
 
-// Migration helper: if Firestore is available and sessions.json exists, migrate entries
+async function deleteByTokenHash(tokenHash) {
+  if (admin.apps.length) {
+    try {
+      const db = admin.firestore()
+      const q = await db.collection(COLLECTION).where('tokenHash', '==', tokenHash).get()
+      const batch = db.batch()
+      q.docs.forEach(d => batch.delete(d.ref))
+      await batch.commit()
+      return
+    } catch (e) {
+      console.warn('deleteByTokenHash firestore failed, falling back to file store', e && e.message)
+    }
+  }
+
+  const sessions = readFileStore()
+  const filtered = sessions.filter(s => s.tokenHash !== tokenHash)
+  writeFileStore(filtered)
+}
+
 async function migrateFromFileDb() {
-  if (!firestoreAvailable()) {
-    console.warn('Firestore not initialized; skipping sessions migration')
+  // Attempt to move local sessions into firestore (used on startup)
+  if (!admin.apps.length) return { migrated: 0 }
+  const sessions = readFileStore()
+  if (!sessions || !sessions.length) return { migrated: 0 }
+
+  try {
+    const db = admin.firestore()
+    let migrated = 0
+    for (const s of sessions) {
+      // write each session into firestore with same id
+      const ref = db.collection(COLLECTION).doc(s.id)
+      await ref.set(s)
+      migrated++
+    }
+
+    // clear local store after successful migration
+    writeFileStore([])
+    return { migrated }
+  } catch (e) {
+    console.warn('migrateFromFileDb failed', e && e.message)
     return { migrated: 0 }
   }
-
-  if (!fs.existsSync(DB)) return { migrated: 0 }
-  try {
-    const raw = fileRead()
-    const items = raw.sessions || []
-    if (!items.length) return { migrated: 0 }
-
-    const db = admin.firestore()
-    const batch = db.batch()
-    items.forEach(it => {
-      const doc = db.collection(COLLECTION).doc()
-      batch.set(doc, it)
-    })
-    await batch.commit()
-
-    // backup and remove the local file
-    fs.renameSync(DB, DB + '.bak.' + Date.now())
-    console.log(`migrated ${items.length} sessions to Firestore and backed up ${DB}`)
-    return { migrated: items.length }
-  } catch (e) {
-    console.error('migration error', e.message)
-    return { migrated: 0, error: e.message }
-  }
 }
 
-module.exports = { createSession, findByTokenHash, deleteByTokenHash, rotateSession, migrateFromFileDb }
+module.exports = {
+  createSession,
+  findByTokenHash,
+  rotateSession,
+  deleteByTokenHash,
+  migrateFromFileDb,
+}
