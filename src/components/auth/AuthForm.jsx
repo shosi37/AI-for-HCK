@@ -149,8 +149,8 @@ export default function AuthForm({ mode = 'login', setMode = () => {}, setBusy =
             // ignore storage errors
           }
 
-          // immediate event for the case Home is already mounted
-          window.dispatchEvent(new CustomEvent('login-success'))
+          // immediate event for the case Home is already mounted — include user detail so any listener can update state
+          window.dispatchEvent(new CustomEvent('login-success', { detail: { user: body.user } }))
         } catch (err) {
           // record error in sessionStorage for debugging
           try {

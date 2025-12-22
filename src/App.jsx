@@ -15,28 +15,53 @@ export default function App() {
     let unsub = null
     const token = localStorage.getItem('auth-token')
 
+    async function fetchProfileWithToken(t) {
+      try {
+        const base = import.meta.env.VITE_BACKEND_URL || ''
+        const r = await fetch(`${base}/api/profile`, { headers: { Authorization: `Bearer ${t}` } })
+        if (r.ok) {
+          const { user } = await r.json()
+          setUser(user)
+          return true
+        }
+      } catch (e) {}
+      return false
+    }
+
+    // listen for login-success events so the app can update immediately after login
+    function handleLoginSuccess(ev) {
+      try {
+        const userFromEvent = ev?.detail?.user
+        if (userFromEvent) {
+          setUser(userFromEvent)
+          setLoading(false)
+          return
+        }
+      } catch (e) {}
+
+      // fallback: if no detail provided, try re-fetching profile from server
+      const t = localStorage.getItem('auth-token')
+      if (t) fetchProfileWithToken(t).then(found => { if (!found) {
+        unsub = onAuthStateChanged(auth, (u) => {
+          setUser(u)
+          if (u) saveUserToFirestore(u)
+        })
+        setLoading(false)
+      }})
+    }
+
+    window.addEventListener('login-success', handleLoginSuccess)
+
     if (token) {
       ;(async () => {
-        try {
-          const base = import.meta.env.VITE_BACKEND_URL || ''
-          const r = await fetch(`${base}/api/profile`, { headers: { Authorization: `Bearer ${token}` } })
-          if (r.ok) {
-            const { user } = await r.json()
-            setUser(user)
-          } else {
-            unsub = onAuthStateChanged(auth, (u) => {
-              setUser(u)
-              if (u) saveUserToFirestore(u)
-            })
-          }
-        } catch (e) {
+        const ok = await fetchProfileWithToken(token)
+        if (!ok) {
           unsub = onAuthStateChanged(auth, (u) => {
             setUser(u)
             if (u) saveUserToFirestore(u)
           })
-        } finally {
-          setLoading(false)
         }
+        setLoading(false)
       })()
     } else {
       unsub = onAuthStateChanged(auth, (u) => {
@@ -46,7 +71,7 @@ export default function App() {
       })
     }
 
-    return () => { if (unsub) unsub() }
+    return () => { if (unsub) unsub(); window.removeEventListener('login-success', handleLoginSuccess) }
   }, [])
 
   function handleSignOut() {
