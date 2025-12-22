@@ -110,13 +110,18 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
               </button>
             </div>
 
-            <div className="space-y-3">
+            <form
+              onSubmit={(e) => { e.preventDefault(); reauthAndUpdate({ wantsEmail: true, wantsPassword: newPassword.length > 0 }) }}
+              className="space-y-3"
+            >
               <div>
                 <label className={`text-sm ${labelText}`}>New email</label>
                 <input
                   value={newEmail}
                   onChange={e => setNewEmail(e.target.value)}
                   className={inputClasses}
+                  autoComplete="email"
+                  name="newEmail"
                 />
               </div>
 
@@ -128,6 +133,8 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
                   type="password"
                   className={inputClasses}
                   placeholder="Leave empty to keep current"
+                  autoComplete="new-password"
+                  name="newPassword"
                 />
               </div>
 
@@ -139,15 +146,14 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
                   onChange={e => setCurrentPassword(e.target.value)}
                   type="password"
                   className={inputClasses}
+                  autoComplete="current-password"
+                  name="currentPassword"
                 />
               </div>
 
               <div className="flex gap-3 mt-4">
                 <button
-                  onClick={() => reauthAndUpdate({
-                    wantsEmail: true,
-                    wantsPassword: newPassword.length > 0
-                  })}
+                  type="submit"
                   disabled={busy}
                   className="btn-primary px-4"
                 >
@@ -155,13 +161,14 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setOpen(false)}
                   className="px-4 py-2 rounded border text-gray-900 border-gray-200 dark:text-gray-200 dark:border-gray-700"
                 >
                   Cancel
                 </button>
               </div>
-            </div>
+            </form>
 
             <ErrorPopup message={popup} setMessage={setPopup} />
           </motion.div>
