@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { updateProfile } from 'firebase/auth'
 import { auth, saveUserToFirestore } from '../../firebase'
 import GeneratedAvatarPicker from './GeneratedAvatarPicker'
-import ErrorPopup from '../ErrorPopup'
+import { ErrorPopup } from '../error' 
 import { FiX, FiCheck } from 'react-icons/fi'
 import useTheme from '../../hooks/useTheme'
 

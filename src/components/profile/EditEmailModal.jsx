@@ -4,7 +4,7 @@ import { reauthenticateWithCredential, EmailAuthProvider, updateEmail, updatePas
 import { auth, saveUserToFirestore } from '../../firebase'
 import { FiX } from 'react-icons/fi'
 import useTheme from '../../hooks/useTheme'
-import ErrorPopup from '../ErrorPopup'
+import { ErrorPopup } from '../error' 
 
 function resolveTheme(hookTheme) {
   if (typeof window === 'undefined') return hookTheme || 'light'

@@ -5,7 +5,7 @@ import { auth, saveUserToFirestore } from './firebase'
 import AuthCard from './components/auth/AuthCard'
 import Home from './pages/Home'
 import AnimatedBackground from './components/AnimatedBackground'
-import ErrorBoundary from './components/ErrorBoundary'
+import { ErrorBoundary } from './components/error' 
 
 export default function App() {
   const [user, setUser] = useState(null)

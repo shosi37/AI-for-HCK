@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth'
 import { auth } from '../../firebase'
-import ErrorPopup from '../ErrorPopup'
+import { ErrorPopup } from '../error' 
 import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi'
 import { translateFirebaseError } from '../../utils/firebaseErrors'
 
