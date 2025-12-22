@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import ProfileMenu from '../components/profile/ProfileMenu'
 import ThemeToggle from '../components/ThemeToggle'
-import SuccessPopup from '../components/SuccessPopup'
+import { SuccessPopup } from '../components/error'
 import { motion } from 'framer-motion'
 import AIChat from './AIChat' 
 

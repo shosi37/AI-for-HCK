@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { updateProfile } from 'firebase/auth'
 import { auth, saveUserToFirestore } from '../../firebase'
 import GeneratedAvatarPicker from './GeneratedAvatarPicker'
-import { ErrorPopup } from '../error' 
+import { ErrorPopup, SuccessPopup } from '../error' 
 import { FiX, FiCheck } from 'react-icons/fi'
 import useTheme from '../../hooks/useTheme'
 
@@ -30,6 +30,19 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
 
   useEffect(() => {
     if (open) console.log('EditProfileModal opened — user:', user)
+
+    // listen for profile-updated events to keep local state in sync if needed
+    function onProfileUpdated(ev) {
+      try {
+        const u = ev?.detail?.user
+        if (u) {
+          setDisplayName(u.displayName || '')
+          setPhotoURL(u.photoURL || '')
+        }
+      } catch (e) {}
+    }
+    window.addEventListener('profile-updated', onProfileUpdated)
+    return () => window.removeEventListener('profile-updated', onProfileUpdated)
   }, [open, user])
 
   useEffect(() => {
@@ -68,7 +81,18 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
       try { await auth.currentUser.reload() } catch (e) { console.warn('Failed to reload current user', e) }
       try { await saveUserToFirestore(auth.currentUser) } catch (e) { console.warn('Failed to save updated user to Firestore', e) }
 
+      // dispatch a profile-updated event so the app can update its user state immediately
+      try {
+        const u = auth.currentUser
+        if (u) {
+          const payload = { uid: u.uid, email: u.email, displayName: u.displayName || '', photoURL: u.photoURL || '', emailVerified: !!u.emailVerified }
+          window.dispatchEvent(new CustomEvent('profile-updated', { detail: { user: payload } }))
+        }
+      } catch (e) { console.warn('failed to dispatch profile-updated event', e) }
+
+      // show a success popup briefly
       setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
       setTimeout(() => setOpen(false), 800)
     } finally {
       setBusy(false)
@@ -94,8 +118,8 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
 
             <div className="space-y-4">
               <ErrorPopup message={error} />
-              <div>
-                <label className={`text-sm block mb-1 ${labelText}`}>Display name</label>
+              <SuccessPopup message={saved ? 'Profile updated' : null} onClose={() => setSaved(false)} />
+
                 <input value={displayName} onChange={e => setDisplayName(e.target.value)} className={inputClasses} placeholder="Your name" />
               </div>
 

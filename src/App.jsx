@@ -52,6 +52,18 @@ export default function App() {
 
     window.addEventListener('login-success', handleLoginSuccess)
 
+    // also listen for profile updates from the EditProfileModal
+    function handleProfileUpdated(ev) {
+      try {
+        const userFromEvent = ev?.detail?.user
+        if (userFromEvent) {
+          setUser(userFromEvent)
+          setLoading(false)
+        }
+      } catch (e) {}
+    }
+    window.addEventListener('profile-updated', handleProfileUpdated)
+
     if (token) {
       ;(async () => {
         const ok = await fetchProfileWithToken(token)
