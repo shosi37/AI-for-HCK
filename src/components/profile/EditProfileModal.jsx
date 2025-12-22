@@ -120,6 +120,8 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
               <ErrorPopup message={error} />
               <SuccessPopup message={saved ? 'Profile updated' : null} onClose={() => setSaved(false)} />
 
+              <div>
+                <label className={`text-sm block mb-1 ${labelText}`}>Display name</label>
                 <input value={displayName} onChange={e => setDisplayName(e.target.value)} className={inputClasses} placeholder="Your name" />
               </div>
 
