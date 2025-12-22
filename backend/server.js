@@ -79,11 +79,17 @@ app.post('/api/login', async (req, res) => {
 
     return res.json({ token, user: payload, firebaseIdToken: fb.idToken })
   } catch (err) {
-    // relay Firebase error message as friendly message
+    // relay Firebase error message as friendly message, but avoid leaking internal codes
     console.error('login error', err.response?.data || err.message)
     const msg = err.response?.data?.error?.message || err.message || 'Login failed'
 
-    if (msg === 'INVALID_PASSWORD' || msg === 'EMAIL_NOT_FOUND') {
+    // treat a variety of firebase credential error messages as bad credentials (401)
+    const credentialIndicators = [
+      'INVALID_PASSWORD', 'EMAIL_NOT_FOUND', 'INVALID_LOGIN_CREDENTIALS',
+      'INVALID_EMAIL', 'USER_NOT_FOUND', 'EMAIL_EXISTS'
+    ]
+
+    if (credentialIndicators.some(k => msg && msg.toString().includes(k))) {
       return res.status(401).json({ error: 'Invalid email or password' })
     }
 
