@@ -25,6 +25,7 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
   const [newEmail, setNewEmail] = useState(user.email || '')
   const [newPassword, setNewPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
+  const currentPasswordRef = React.useRef(null)
 
   const [busy, setBusy] = useState(false)
   const [popup, setPopup] = useState(null)
@@ -64,7 +65,9 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
       console.error(err)
 
       if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setPopup('Incorrect password. Please enter your current password to confirm changes.')
+        setPopup('Incorrect password. Please enter your current password to confirm changes. If you forgot it, use the "Reset password" flow.')
+        // focus the password input for convenience
+        try { currentPasswordRef?.current?.focus() } catch (e) {}
       } else {
         setPopup(
           translateFirebaseError
@@ -131,6 +134,7 @@ export default function EditEmailModal({ open, setOpen, user, translateFirebaseE
               <div>
                 <label className={`text-sm ${labelText}`}>Current password (required)</label>
                 <input
+                  ref={currentPasswordRef}
                   value={currentPassword}
                   onChange={e => setCurrentPassword(e.target.value)}
                   type="password"

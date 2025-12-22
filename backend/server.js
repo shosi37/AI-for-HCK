@@ -49,6 +49,9 @@ async function firebaseSignInWithPassword(email, password) {
   return res.data // contains idToken, localId (uid), email, displayName, emailVerified
 }
 
+// health check to make debugging easier
+app.get('/api', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }))
+
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body || {}
   if (!email || !password) return res.status(400).json({ error: 'Missing email or password' })
@@ -84,7 +87,12 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     // relay Firebase error message as friendly message, but avoid leaking internal codes
     // dump full error for server logs to help debug (do not send raw to client)
-    console.error('login error', err.response?.data || err.message)
+    console.error('login error', {
+      status: err.response?.status,
+      url: err.config?.url,
+      data: err.response?.data,
+      message: err.message
+    })
 
     // Normalize message from multiple possible shapes returned by firebase/axios
     let msg = 'Login failed'
