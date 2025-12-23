@@ -11,6 +11,8 @@ export default function ProfileMenu({ user, onSignOut }) {
 
   function sanitizeAvatarUrl(url) {
     try {
+      // Allow data URLs and blob URLs (e.g., generated SVGs)
+      if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('blob:'))) return url
       const u = new URL(url)
       const host = u.hostname
       if (host.includes('dicebear')) {
@@ -38,7 +40,68 @@ export default function ProfileMenu({ user, onSignOut }) {
       >
         <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden flex items-center justify-center">
           {user.photoURL ? (
-            <img src={sanitizeAvatarUrl(user.photoURL)} alt="avatar" className="w-full h-full object-cover" />
+            <img
+              src={(() => {
+                try {
+                  const url = sanitizeAvatarUrl(user.photoURL)
+                  // If the URL is an AbstractAPI URL (or the app's proxy), prefer the backend proxy to avoid Referer/CORS blocking
+                  if (typeof url === 'string' && (url.includes('abstractapi.com') || url.includes('/api/avatar/abstract') || url.includes('avatars.abstractapi.com'))) {
+                    const uid = (user && user.uid) || (url.split('/').pop && url.split('/').pop().replace('.svg','').replace('.png',''))
+                    // prefer explicit env var, otherwise default to dev backend on localhost:4000
+                    const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+                    return `${base}/api/avatar/abstract/${encodeURIComponent(uid)}`
+                  }
+                  return url
+                } catch (e) { return user.photoURL }
+              })()}
+              alt="avatar"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                try {
+                  // Clear any existing onerror to avoid loops
+                  e.currentTarget.onerror = null
+
+                  // If we failed to load the backend proxy, try the direct AbstractAPI URL (or a UI-Avatars fallback)
+                  const cur = e.currentTarget.src || ''
+
+                  // small retry state to avoid infinite loops
+                  const tries = parseInt(e.currentTarget.getAttribute('data-avatar-tries') || '0', 10)
+                  if (tries < 2) {
+                    e.currentTarget.setAttribute('data-avatar-tries', String(tries + 1))
+                    try {
+                      // attempt to toggle between proxy and direct URL
+                      const uidFromUser = (user && user.photoURL && user.photoURL.includes('/api/avatar/abstract')) ? user.photoURL.split('/api/avatar/abstract/').pop().replace('.svg','').replace('.png','') : null
+                      const uidFromSrc = cur.includes('/api/avatar/abstract/') ? cur.split('/api/avatar/abstract/').pop().replace('.svg','').replace('.png','') : null
+                      const uid = uidFromUser || uidFromSrc || (user && user.uid) || null
+                      if (uid) {
+                        const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+                        const proxy = `${base}/api/avatar/abstract/${encodeURIComponent(uid)}`
+                        const key = import.meta.env.VITE_AVATAR_API_KEY || null
+                        const direct = key ? `https://avatars.abstractapi.com/v1/?api_key=${encodeURIComponent(key)}&name=${encodeURIComponent(uid)}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(uid)}&format=png`
+                        // If current is proxy, try direct; otherwise try proxy
+                        if (cur.includes('/api/avatar/abstract/')) {
+                          e.currentTarget.src = direct
+                          return
+                        } else {
+                          e.currentTarget.src = proxy
+                          return
+                        }
+                      }
+                    } catch (swapErr) {
+                      // fall through to initials
+                    }
+                  }
+
+                  // Fallback to initials SVG
+                  const initials = (user.displayName ? user.displayName[0] : (user.email ? user.email[0] : 'U')).toUpperCase()
+                  const bg = document.documentElement.classList.contains('dark') ? '#111827' : '#ffffff'
+                  const fg = document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='100%' height='100%' fill='${bg}'/><text x='50%' y='50%' font-size='44' fill='${fg}' text-anchor='middle' dominant-baseline='central' font-family='Helvetica,Arial'>${initials}</text></svg>`
+                  e.currentTarget.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg)
+                } catch (err) { e.currentTarget.style.display = 'none' }
+              }}
+            />
           ) : (
             <span className="text-lg text-gray-700 dark:text-gray-100">{user.displayName ? user.displayName[0].toUpperCase() : user.email[0].toUpperCase()}</span>
           )}

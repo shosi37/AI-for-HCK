@@ -2,7 +2,7 @@ Firebase Auth — React (Tailwind + Framer Motion)
 
 Quick setup:
 1. npm install
-2. Copy `.env.example` to `.env` and fill frontend keys (VITE_FIREBASE_*, VITE_AVATAR_API_KEY, VITE_BACKEND_URL)
+2. Copy `.env.example` to `.env` and fill frontend keys (VITE_FIREBASE_*, VITE_BACKEND_URL) 
 3. Copy `backend/.env.example` to `backend/.env` and fill backend keys (FIREBASE_API_KEY, JWT_SECRET, SERVICE_ACCOUNT_*)
 4. start both servers together (recommended): `npm run dev` — this uses `vite` for the frontend and starts the backend automatically once the frontend is reachable (reduces Vite client ping errors)
    - Or run servers separately: `npm run dev-frontend` and `npm --prefix backend run dev`
@@ -21,7 +21,7 @@ Environment variables (summary):
   - VITE_FIREBASE_MESSAGING_SENDER_ID
   - VITE_FIREBASE_APP_ID
   - VITE_FIREBASE_MEASUREMENT_ID
-  - VITE_AVATAR_API_KEY (optional)
+
   - VITE_BACKEND_URL (e.g. http://localhost:4000)
 
 - Backend (`backend/.env`):

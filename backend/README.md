@@ -44,7 +44,9 @@ Dev troubleshooting tips:
 
 Environment variables
 
-See `.env.example`.
+- Add `ABSTRACTAPI_KEY` to your `backend/.env` to enable avatar proxying through AbstractAPI (do NOT commit this key).
+
+See `.env.example`. 
 
 Service account & sessions
 

@@ -201,7 +201,81 @@ const requireAuth = (req, res, next) => {
  * Profile
  */
 app.get('/api/profile', requireAuth, async (req, res) => {
-  res.json({ user: req.user })
+  // Prefer proxy URL for client display when available to avoid cross-origin blocks
+  const u = { ...(req.user || {}) }
+  if (u.photoURLProxy) {
+    // If proxy provided as relative path, make it absolute using request origin
+    if (typeof u.photoURLProxy === 'string' && u.photoURLProxy.startsWith('/')) {
+      const origin = process.env.BACKEND_PUBLIC_URL || `${req.protocol}://${req.get('host')}`
+      u.photoURL = `${origin}${u.photoURLProxy}`
+    } else {
+      u.photoURL = u.photoURLProxy
+    }
+  }
+  res.json({ user: u })
+})
+
+// Update profile (update session meta and return a fresh access token)
+app.post('/api/profile', requireAuth, async (req, res) => {
+  const { displayName, photoURL } = req.body || {}
+  const uid = req.user && req.user.uid
+  if (!uid) return res.status(400).json({ error: 'Missing user in token' })
+
+  const newMeta = { ...req.user, displayName: displayName || req.user.displayName || '', photoURL: photoURL || req.user.photoURL || '' }
+
+  // Canonicalize generated avatar selections: if client sent inline SVG, blob, or a third-party API URL, store the backend proxy URL so API keys aren't exposed
+  try {
+    if (newMeta.photoURL && typeof newMeta.photoURL === 'string' && (newMeta.photoURL.startsWith('data:image/svg+xml') || newMeta.photoURL.startsWith('blob:') || newMeta.photoURL.includes('abstractapi.com') || newMeta.photoURL.includes('/api/avatar/abstract'))) {
+      if (uid) {
+        const proxyBase = process.env.BACKEND_PUBLIC_URL || `${req.protocol}://${req.get('host')}`
+        newMeta.photoURL = `${proxyBase.replace(/\/$/, '')}/api/avatar/abstract/${encodeURIComponent(uid)}`
+      }
+    }
+  } catch (e) {
+    console.warn('avatar canonicalization failed', e && (e.message || e))
+  }
+
+  // Update sessions store: Firestore or file store
+  try {
+    if (admin.apps.length) {
+      const db = admin.firestore()
+      const q = await db.collection('sessions').where('uid', '==', uid).get()
+      const batch = db.batch()
+      q.docs.forEach(d => {
+        const docRef = d.ref
+        const meta = { ...(d.data().meta || {}), displayName: newMeta.displayName, photoURL: newMeta.photoURL }
+        batch.update(docRef, { meta })
+      })
+      await batch.commit()
+    } else {
+      // file store: read, modify and write
+      const fs = require('fs')
+      const path = require('path')
+      const FILE_PATH = path.join(__dirname, 'sessions.json')
+      try {
+        if (fs.existsSync(FILE_PATH)) {
+          const raw = fs.readFileSync(FILE_PATH, 'utf8')
+          const parsed = JSON.parse(raw)
+          const sessionsArr = parsed.sessions || []
+          const updated = sessionsArr.map(s => s.uid === uid ? { ...s, meta: { ...(s.meta || {}), displayName: newMeta.displayName, photoURL: newMeta.photoURL } } : s)
+          fs.writeFileSync(FILE_PATH, JSON.stringify({ sessions: updated }, null, 2))
+        }
+      } catch (e) { console.warn('Failed to update file store sessions', e && e.message) }
+    }
+
+    // sign a fresh token with updated meta and return it
+    const tokenPayload = { uid, email: newMeta.email || '', displayName: newMeta.displayName || '', emailVerified: !!newMeta.emailVerified, photoURL: newMeta.photoURL || '' }
+    // include a proxy URL that the client can use to avoid direct external requests
+    try {
+      const proxyBase = process.env.BACKEND_PUBLIC_URL || `${req.protocol}://${req.get('host')}`
+      tokenPayload.photoURLProxy = `${proxyBase.replace(/\/$/, '')}/api/avatar/${encodeURIComponent(uid)}.svg`
+    } catch (e) {}
+    const newAccess = signAccessToken(tokenPayload)
+    return res.json({ token: newAccess, user: tokenPayload })
+  } catch (e) {
+    console.error('Failed to update session meta', e && (e.stack || e.message) || e)
+    return res.status(500).json({ error: 'Failed to update session meta' })
+  }
 })
 
 // Dev-only helper to impersonate a user (disabled in production)
@@ -223,6 +297,22 @@ if (process.env.NODE_ENV !== 'production') {
     try { await sessions.createSession({ uid: payload.uid, tokenHash: refreshHash, expiresAt: Date.now() + refreshExpiryMs, meta: payload }) } catch (e) { console.error('createSession failed in impersonate', e && (e.stack || e.message) || e) }
     setRefreshCookie(res, refreshToken)
     return res.json({ token: accessToken, user: payload })
+  })
+
+  // Simple health endpoint to verify AbstractAPI connectivity
+  app.get('/api/avatar/abstract/health', async (req, res) => {
+    const testName = 'healthcheck'
+    const key = process.env.ABSTRACTAPI_KEY
+    if (!key) return res.status(500).json({ ok: false, error: 'ABSTRACTAPI_KEY not configured' })
+    try {
+      const abstractUrl = `https://avatars.abstractapi.com/v1/?api_key=${encodeURIComponent(key)}&name=${encodeURIComponent(testName)}`
+      const r = await axios.get(abstractUrl, { responseType: 'arraybuffer' })
+      return res.json({ ok: true, providerStatus: r.status, contentType: r.headers['content-type'] || null })
+    } catch (e) {
+      console.error('AbstractAPI health check failed', e && (e.stack || e.message) || e)
+      if (e && e.response) return res.status(502).json({ ok: false, providerStatus: e.response.status, providerData: e.response.data ? (e.response.data.toString ? e.response.data.toString() : e.response.data) : null })
+      return res.status(502).json({ ok: false, error: 'Failed to contact AbstractAPI' })
+    }
   })
 }
 
@@ -317,6 +407,39 @@ app.get('/api/oauth/google/callback', async (req, res) => {
 
     const tokenRes = await axios.post('https://oauth2.googleapis.com/token', params.toString(), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
     const { access_token } = tokenRes.data
+
+
+// Proxy endpoint for AbstractAPI avatars to avoid exposing API keys and to prevent client-side CORS/Referer blocking
+app.get('/api/avatar/abstract/:seed', async (req, res) => {
+  try {
+    const seed = req.params.seed
+    if (!seed) return res.status(400).send('Missing seed')
+
+    const key = process.env.ABSTRACTAPI_KEY
+    if (!key) return res.status(500).send('AbstractAPI key not configured on server')
+
+    const abstractUrl = `https://avatars.abstractapi.com/v1/?api_key=${encodeURIComponent(key)}&name=${encodeURIComponent(seed)}`
+    const r = await axios.get(abstractUrl, { responseType: 'arraybuffer' })
+    const ct = (r.headers && r.headers['content-type']) ? r.headers['content-type'] : 'image/png'
+
+    res.set('Content-Type', ct)
+    res.set('Cache-Control', 'public, max-age=31536000')
+    // allow cross-origin image embedding from any origin
+    res.set('Access-Control-Allow-Origin', '*')
+    return res.send(Buffer.from(r.data))
+  } catch (e) {
+    // Improved logging and diagnostic response in dev
+    console.error('Failed to proxy abstractapi avatar', e && (e.stack || e.message) || e)
+    if (e && e.response) {
+      console.error('Provider response status:', e.response.status)
+      console.error('Provider response data:', (e.response.data && e.response.data.toString && e.response.data.toString()) || e.response.data)
+      if (process.env.NODE_ENV !== 'production') {
+        return res.status(502).json({ error: 'Failed to fetch avatar from provider', status: e.response.status, data: e.response.data ? (e.response.data.toString ? e.response.data.toString() : e.response.data) : null })
+      }
+    }
+    return res.status(502).send('Failed to fetch avatar')
+  }
+})
 
     const uRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${access_token}` } })
     const u = uRes.data

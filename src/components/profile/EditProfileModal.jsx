@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { updateProfile } from 'firebase/auth'
 import { auth, saveUserToFirestore } from '../../firebase'
 import GeneratedAvatarPicker from './GeneratedAvatarPicker'
-import { ErrorPopup } from '../error' 
+import { ErrorPopup, SuccessPopup } from '../error' 
 import { FiX, FiCheck } from 'react-icons/fi'
 import useTheme from '../../hooks/useTheme'
 
@@ -27,6 +27,7 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState(null)
+  const [successMsg, setSuccessMsg] = useState(null)
 
   useEffect(() => {
     if (open) console.log('EditProfileModal opened — user:', user)
@@ -65,29 +66,121 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
         return
       }
 
+      // Attempt to update the Firebase Auth profile but avoid sending very large data URLs (they are rejected by Auth)
+      let authUpdateFailed = false
+      const skipAuthPhotoUpdate = typeof photoURL === 'string' && photoURL.startsWith('data:') && photoURL.length > 1024
       try {
-        await updateProfile(auth.currentUser, {
-          displayName: displayName.trim() || null,
-          photoURL: photoURL || null,
-        })
+        const updatePayload = { displayName: displayName.trim() || null }
+        if (!skipAuthPhotoUpdate) updatePayload.photoURL = photoURL || null
+        await updateProfile(auth.currentUser, updatePayload)
       } catch (err) {
-        const msg = 'Unable to update profile: ' + (err.message || err)
-        console.error('updateProfile failed', err)
-        setError(msg)
+        authUpdateFailed = true
+        console.warn('updateProfile failed', err)
+        const errText = err && (err.message || String(err)) || ''
+        const isPhotoTooLong = errText.includes('Photo URL too long') || err.code === 'auth/invalid-profile-attribute'
+        if (isPhotoTooLong) {
+          setSuccessMsg('Profile saved — avatar stored in Firestore, but Firebase Auth rejected the photo (too long). It will still display in the app.')
+        } else {
+          setError('Unable to update Firebase Auth profile (will still save profile to Firestore): ' + errText)
+        }
         try { sessionStorage.setItem('profile-error', JSON.stringify({ message: err.message || String(err), code: err.code || null, time: Date.now() })) } catch (e) {}
-        return
       }
 
+      // Try to reload auth user (best-effort)
       try { await auth.currentUser.reload() } catch (e) { console.warn('Failed to reload current user', e) }
-      try { await saveUserToFirestore(auth.currentUser) } catch (e) { console.warn('Failed to save updated user to Firestore', e) }
+
+      // Compute the canonical saved URL. For generated AbstractAPI selections we store a proxy-based URL so the API key is never exposed
+      let finalPhotoURL = photoURL || null
+      try {
+        const uid = auth.currentUser && auth.currentUser.uid
+        // If the selected avatar is a generated preview (data: or blob:) or an AbstractAPI url, canonicalize to the backend proxy URL `/api/avatar/abstract/{uid}`
+        if (uid && finalPhotoURL && (finalPhotoURL.startsWith('data:') || finalPhotoURL.startsWith('blob:') || finalPhotoURL.includes('abstractapi.com') || finalPhotoURL.includes('/api/avatar/abstract'))) {
+          const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+          finalPhotoURL = `${base}/api/avatar/abstract/${encodeURIComponent(uid)}`
+        }
+      } catch (e) { console.warn('Failed to canonicalize avatar URL', e) }
+
+      // Save to Firestore using the canonical value
+      try {
+        const userToSave = { ...(auth.currentUser || {}), displayName: displayName.trim() || null, photoURL: finalPhotoURL }
+        await saveUserToFirestore(userToSave)
+      } catch (e) { console.warn('Failed to save updated user to Firestore', e) }
+
+      // Update Firebase Auth profile with the canonical URL (should succeed since it's short)
+      try {
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName: displayName.trim() || null, photoURL: finalPhotoURL || null })
+          try { await auth.currentUser.reload() } catch (e) { console.warn('Failed to reload current user after update', e) }
+        }
+      } catch (e) {
+        console.warn('updateProfile with canonical URL failed', e)
+      }
+
+      // Try to update server session meta so /api/profile returns the updated photo (and issue a fresh access token)
+      try {
+        const { fetchWithAuth } = await import('../../utils/api')
+        const res = await fetchWithAuth('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: displayName.trim() || '', photoURL: finalPhotoURL || '' }) })
+        if (res && res.ok) {
+          const b = await res.json()
+          if (b.token) {
+            try { localStorage.setItem('auth-token', b.token) } catch (e) {}
+          }
+          if (b.user) {
+            // use server-canonical user object in the dispatched event
+            const srvUser = b.user
+
+            // Persist the server-canonical user to Firestore so the hosted URL survives reloads
+            try {
+              await saveUserToFirestore(srvUser)
+            } catch (e) {
+              console.warn('Failed to save server-canonical user to Firestore', e)
+            }
+
+            // Prefer the server-provided proxy URL when available so the client avoids blocked third-party requests
+            let displayPhoto = srvUser.photoURLProxy || srvUser.photoURL || ''
+            if (typeof displayPhoto === 'string' && displayPhoto.startsWith('data:')) {
+              // convert to stable AbstractAPI proxy URL using uid
+              const uidFromServer = srvUser.uid || (auth.currentUser && auth.currentUser.uid) || null
+              if (uidFromServer) {
+                const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+                displayPhoto = `${base}/api/avatar/abstract/${encodeURIComponent(uidFromServer)}`
+              }
+            }
+
+            const dispatchUser = { ...srvUser, photoURL: displayPhoto || srvUser.photoURL }
+            window.dispatchEvent(new CustomEvent('profile-updated', { detail: { user: dispatchUser } }))
+          }
+        }
+      } catch (e) { console.warn('Failed to update server profile meta', e) }
 
       // dispatch a profile-updated event so the app can update its user state immediately
       try {
         const u = auth.currentUser
-        if (u) {
-          const payload = { uid: u.uid, email: u.email, displayName: u.displayName || '', photoURL: u.photoURL || '', emailVerified: !!u.emailVerified }
-          window.dispatchEvent(new CustomEvent('profile-updated', { detail: { user: payload } }))
+        let payload = null
+        // choose the best photoURL to display (Auth-updated, or selected photo). If it's an inline data URL, convert to a short blob URL for stable rendering.
+        let displayPhoto = null
+        if (!authUpdateFailed) {
+          displayPhoto = u && u.photoURL ? u.photoURL : null
+        } else {
+          displayPhoto = photoURL || null
         }
+
+        // Never use temporary blob/data URLs for the app state. Prefer the Firebase Auth value or a stable canonical URL.
+        if (typeof displayPhoto === 'string' && (displayPhoto.startsWith('data:') || displayPhoto.startsWith('blob:'))) {
+          const uidFromAuth = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : null
+          if (uidFromAuth) {
+            const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+            displayPhoto = `${base}/api/avatar/abstract/${encodeURIComponent(uidFromAuth)}`
+          }
+        }
+
+        if (!authUpdateFailed) {
+          if (u) payload = { uid: u.uid, email: u.email, displayName: u.displayName || '', photoURL: u.photoURL || displayPhoto || '', emailVerified: !!u.emailVerified }
+        } else {
+          payload = { uid: u ? u.uid : null, email: u ? u.email : '', displayName: displayName.trim() || '', photoURL: displayPhoto || photoURL || '', emailVerified: !!(u && u.emailVerified) }
+        }
+
+        if (payload) window.dispatchEvent(new CustomEvent('profile-updated', { detail: { user: payload } }))
       } catch (e) { console.warn('failed to dispatch profile-updated event', e) }
 
       // show a success popup briefly
@@ -118,6 +211,7 @@ export default function EditProfileModal({ open, setOpen, user = {} }) {
 
             <div className="space-y-4">
               <ErrorPopup message={error} />
+              <SuccessPopup message={successMsg} onClose={() => setSuccessMsg(null)} />
 
               <div>
                 <label className={`text-sm block mb-1 ${labelText}`}>Display name</label>

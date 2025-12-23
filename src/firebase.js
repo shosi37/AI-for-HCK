@@ -29,7 +29,7 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Firebase Storage (for profile pictures)
-export const storage = getStorage(app);
+export const storage = getStorage(app); // Firebase Storage (used for hosting generated avatars)
 
 // Firestore
 export const db = getFirestore(app);
@@ -38,8 +38,30 @@ export const db = getFirestore(app);
 // sanitize avatar URLs (handle DiceBear gradient tokens and recognize other providers like AbstractAPI / proxy)
 function sanitizeAvatarUrl(url) {
   try {
+    // Allow data URLs and blob URLs (e.g., generated SVGs)
+    if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('blob:'))) return url
     const u = new URL(url)
     const host = u.hostname
+
+    // AbstractAPI: prefer serving via backend proxy to avoid exposing API key or triggering Referer/CORS blocking
+    if (host.includes('abstractapi.com') || host.includes('avatars.abstractapi.com')) {
+      try {
+        // extract seed from query or path; fallback to last path segment
+        let seed = null
+        if (u.searchParams && u.searchParams.get('name')) seed = u.searchParams.get('name')
+        if (!seed) {
+          const segments = (u.pathname || '').split('/').filter(Boolean)
+          const last = segments.length ? segments[segments.length - 1] : ''
+          seed = last ? last.replace('.svg', '').replace('.png', '') : null
+        }
+        const proxyBase = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+        if (proxyBase && seed) return `${proxyBase}/api/avatar/abstract/${encodeURIComponent(seed)}`
+      } catch (e) {
+        // fall back to original URL if proxy build fails
+        return u.toString()
+      }
+    }
+
     // DiceBear: backgroundType/background gradient token -> replace with transparent
     if (host.includes('dicebear')) {
       const bt = u.searchParams.get('backgroundType') || u.searchParams.get('background')
@@ -55,7 +77,7 @@ function sanitizeAvatarUrl(url) {
     }
   } catch (e) {}
   return url
-}
+} 
 
 export async function saveUserToFirestore(user) {
   if (!user) return
