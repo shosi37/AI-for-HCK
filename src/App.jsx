@@ -39,6 +39,8 @@ export default function App() {
               try {
                 await signInWithCustomToken(auth, custom)
                 console.log('[App] Firebase client signed in with custom token')
+                // After signing in with a custom token, immediately ensure server session and fetch canonical profile
+                try { await ensureServerSession(auth.currentUser) } catch (e) { console.warn('[App] ensureServerSession after custom token failed', e) }
               } catch (e) {
                 console.warn('[App] Firebase signInWithCustomToken failed', e)
               }
@@ -54,6 +56,35 @@ export default function App() {
     })()
 
     const token = localStorage.getItem('auth-token')
+
+    // Ensure the Firebase ID token is exchanged for a server token and the canonical server profile is loaded
+    async function ensureServerSession(u) {
+      if (!u) return null
+      try {
+        const idTok = await u.getIdToken()
+        const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+        const r = await fetch(base + '/api/login-token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ idToken: idTok }) })
+        if (r.ok) {
+          const b = await r.json().catch(() => ({}))
+          if (b && b.token) {
+            try { localStorage.setItem('auth-token', b.token) } catch (e) {}
+          }
+          if (b && b.user) {
+            const srvUser = b.user
+            // prefer proxy URL when provided
+            if (srvUser.photoURLProxy) srvUser.photoURL = srvUser.photoURLProxy
+            setUser(srvUser)
+            try { await saveUserToFirestore(srvUser) } catch (e) { console.warn('Failed to save server-canonical user to Firestore', e) }
+            return srvUser
+          }
+        } else {
+          console.warn('[App] /api/login-token returned', r.status)
+        }
+      } catch (e) {
+        console.warn('[App] ensureServerSession failed', e)
+      }
+      return null
+    }
 
     async function fetchProfileWithToken(t) {
       try {
@@ -73,8 +104,20 @@ export default function App() {
       try {
         const userFromEvent = ev?.detail?.user
         if (userFromEvent) {
-          setUser(userFromEvent)
-          setLoading(false)
+          // Prefer server canonical profile; try to ensure server session and update UI from server
+          (async () => {
+            try {
+              const { auth } = await import('./firebase')
+              const serverUser = await ensureServerSession(auth.currentUser)
+              if (serverUser) {
+                setUser(serverUser)
+                setLoading(false)
+                return
+              }
+            } catch (e) { console.warn('[App] ensureServerSession failed in handleLoginSuccess', e) }
+            setUser(userFromEvent)
+            setLoading(false)
+          })()
           return
         }
       } catch (e) {}
@@ -82,9 +125,38 @@ export default function App() {
       // fallback: if no detail provided, try re-fetching profile from server
       const t = localStorage.getItem('auth-token')
       if (t) fetchProfileWithToken(t).then(found => { if (!found) {
-        unsub = onAuthStateChanged(auth, (u) => {
-          setUser(u)
-          if (u) saveUserToFirestore(u)
+        // If server-side profile fetch didn't work, listen to Firebase auth state changes and try to create a server session
+        unsub = onAuthStateChanged(auth, async (u) => {
+            try {
+              if (!u) { setUser(null); return }
+
+              const srv = await ensureServerSession(u)
+              if (srv) {
+                // server user was set inside ensureServerSession
+                return
+              }
+
+              // If server session not available, fallback to Firestore-stored avatar when Auth lacks photoURL
+              if (!u.photoURL) {
+                try {
+                  const { getUserFromFirestore } = await import('./firebase')
+                  const doc = await getUserFromFirestore(u.uid)
+                  if (doc && doc.photoURL) {
+                    const merged = { uid: u.uid, email: u.email, displayName: u.displayName || '', photoURL: doc.photoURL, emailVerified: !!u.emailVerified }
+                    setUser(merged)
+                  } else {
+                    setUser(u)
+                  }
+                } catch (e) { setUser(u) }
+              } else {
+                setUser(u)
+              }
+
+              if (u) saveUserToFirestore(u)
+            } catch (e) {
+              setUser(u)
+              if (u) saveUserToFirestore(u)
+            }
         })
         setLoading(false)
       }})
@@ -108,18 +180,60 @@ export default function App() {
       ;(async () => {
         const ok = await fetchProfileWithToken(token)
         if (!ok) {
-          unsub = onAuthStateChanged(auth, (u) => {
-            setUser(u)
-            if (u) saveUserToFirestore(u)
+          unsub = onAuthStateChanged(auth, async (u) => {
+            try {
+              if (!u) { setUser(null); return }
+
+              const srv = await ensureServerSession(u)
+              if (srv) return
+
+              // fallback to Firestore if server session didn't materialize
+              if (!u.photoURL) {
+                try {
+                  const { getUserFromFirestore } = await import('./firebase')
+                  const doc = await getUserFromFirestore(u.uid)
+                  if (doc && doc.photoURL) {
+                    const merged = { uid: u.uid, email: u.email, displayName: u.displayName || '', photoURL: doc.photoURL, emailVerified: !!u.emailVerified }
+                    setUser(merged)
+                  } else {
+                    setUser(u)
+                  }
+                } catch (e) { setUser(u) }
+              } else {
+                setUser(u)
+              }
+
+              if (u) saveUserToFirestore(u)
+            } catch (e) { setUser(u); if (u) saveUserToFirestore(u) }
           })
         }
         setLoading(false)
       })()
     } else {
-      unsub = onAuthStateChanged(auth, (u) => {
-        setUser(u)
-        setLoading(false)
-        if (u) saveUserToFirestore(u)
+      unsub = onAuthStateChanged(auth, async (u) => {
+        try {
+          if (!u) { setUser(null); setLoading(false); return }
+
+          const srv = await ensureServerSession(u)
+          if (srv) { setLoading(false); return }
+
+          if (!u.photoURL) {
+            try {
+              const { getUserFromFirestore } = await import('./firebase')
+              const doc = await getUserFromFirestore(u.uid)
+              if (doc && doc.photoURL) {
+                const merged = { uid: u.uid, email: u.email, displayName: u.displayName || '', photoURL: doc.photoURL, emailVerified: !!u.emailVerified }
+                setUser(merged)
+              } else {
+                setUser(u)
+              }
+            } catch (e) { setUser(u) }
+          } else {
+            setUser(u)
+          }
+          setLoading(false)
+          if (u) saveUserToFirestore(u)
+        } catch (e) { setUser(u); setLoading(false); if (u) saveUserToFirestore(u) }
       })
     }
 

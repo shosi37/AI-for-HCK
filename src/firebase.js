@@ -79,18 +79,29 @@ function sanitizeAvatarUrl(url) {
   return url
 } 
 
-export async function saveUserToFirestore(user) {
+export async function saveUserToFirestore(user, { forcePhotoUpdate = false } = {}) {
   if (!user) return
   try {
     const ref = doc(db, 'users', user.uid)
-    const sanitizedPhoto = user.photoURL ? sanitizeAvatarUrl(user.photoURL) : null
-    await setDoc(ref, {
+    const sanitizedPhoto = (typeof user.photoURL === 'string' && user.photoURL) ? sanitizeAvatarUrl(user.photoURL) : null
+
+    const payload = {
       uid: user.uid,
       email: user.email || null,
       displayName: user.displayName || null,
-      photoURL: sanitizedPhoto,
       lastSeen: new Date().toISOString()
-    }, { merge: true })
+    }
+
+    // Only include photoURL when we have a non-null value, or when caller explicitly forces an update
+    if (sanitizedPhoto !== null) {
+      payload.photoURL = sanitizedPhoto
+    } else if (forcePhotoUpdate && Object.prototype.hasOwnProperty.call(user, 'photoURL')) {
+      // explicit null provided -> clear stored photo
+      payload.photoURL = null
+      console.log('[saveUserToFirestore] clearing photoURL for', user.uid)
+    }
+
+    await setDoc(ref, payload, { merge: true })
   } catch (e) {
     console.error('Failed to save user to Firestore', e)
   }
@@ -112,6 +123,18 @@ export async function getChatbotConfig() {
     return snap.exists() ? snap.data() : null
   } catch (e) {
     console.error('Failed to get chatbot config', e)
+    return null
+  }
+}
+
+export async function getUserFromFirestore(uid) {
+  if (!uid) return null
+  try {
+    const ref = doc(db, 'users', uid)
+    const snap = await getDoc(ref)
+    return snap.exists() ? snap.data() : null
+  } catch (e) {
+    console.error('Failed to fetch user from Firestore', e)
     return null
   }
 }

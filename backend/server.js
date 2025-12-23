@@ -80,12 +80,57 @@ app.post('/api/login-token', async (req, res) => {
     return res.status(401).json({ error: 'Invalid Firebase token' })
   }
 
-  const payload = {
+  let payload = {
     uid: decoded.uid,
     email: decoded.email || '',
     displayName: decoded.name || '',
     emailVerified: !!decoded.email_verified,
   }
+
+  // If we have an existing session or Firestore user record, prefer its meta so persisted photoURL isn't lost
+  try {
+    if (admin.apps.length) {
+      const db = admin.firestore()
+      // find the latest session for this uid, if any
+      const q = await db.collection('sessions').where('uid', '==', payload.uid).orderBy('createdAt', 'desc').limit(1).get()
+      if (!q.empty) {
+        const s = q.docs[0].data()
+        if (s && s.meta) {
+          payload = { ...payload, ...s.meta }
+        }
+      } else {
+        // fallback: check users collection
+        const ud = await db.collection('users').doc(payload.uid).get()
+        if (ud.exists) {
+          const udata = ud.data() || {}
+          if (udata.photoURL) payload.photoURL = udata.photoURL
+          if (udata.displayName) payload.displayName = payload.displayName || udata.displayName
+        }
+      }
+    } else {
+      // file-based sessions.json fallback
+      const fs = require('fs')
+      const path = require('path')
+      const FILE_PATH = path.join(__dirname, 'sessions.json')
+      try {
+        if (fs.existsSync(FILE_PATH)) {
+          const raw = fs.readFileSync(FILE_PATH, 'utf8')
+          const parsed = JSON.parse(raw)
+          const arr = parsed.sessions || []
+          const latest = arr.filter(s => s.uid === payload.uid).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0]
+          if (latest && latest.meta) payload = { ...payload, ...latest.meta }
+        }
+      } catch (e) { /** ignore file read errors */ }
+    }
+  } catch (e) {
+    console.warn('Failed to merge existing session meta for login-token', e && (e.message || e))
+  }
+
+  // include a proxy URL that the client can use to avoid direct external requests
+  try {
+    const proxyBase = process.env.BACKEND_PUBLIC_URL || `${req.protocol}://${req.get('host')}`
+    payload.photoURLProxy = `${proxyBase.replace(/\/$/, '')}/api/avatar/${encodeURIComponent(payload.uid)}.svg`
+  } catch (e) {}
 
   const accessToken = signAccessToken(payload)
 
