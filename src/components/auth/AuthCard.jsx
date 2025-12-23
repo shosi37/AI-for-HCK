@@ -116,7 +116,7 @@ export default function AuthCard() {
             </button>
           </>
         )}
-      </div>3
+      </div>
     </motion.div>
   )
 }

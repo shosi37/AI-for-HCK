@@ -1,0 +1,14 @@
+{
+  "watch": ["server.js"],
+  "ignore": [
+    "*.log",
+    "server.err.log",
+    "server.out.log",
+    "sessions.json",
+    "service-account.json",
+    "node_modules/**",
+    ".git/**",
+    "frontend/**"
+  ],
+  "delay": "2500"
+}
