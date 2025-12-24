@@ -323,6 +323,74 @@ app.post('/api/profile', requireAuth, async (req, res) => {
   }
 })
 
+// Admin helpers: check `meta/admins` and provide config endpoints
+async function isAdminUser(uid, email) {
+  try {
+    if (!admin.apps.length) return false
+    const snap = await admin.firestore().collection('meta').doc('admins').get()
+    const data = snap.exists ? (snap.data() || {}) : {}
+    const uids = data.uids || []
+    const emails = data.emails || []
+    if ((uid && uids.includes(uid)) || (email && emails.includes(email))) return true
+  } catch (e) {
+    console.warn('isAdminUser check failed', e && e.message)
+  }
+  return false
+}
+
+const verifyAdmin = async (req, res, next) => {
+  const h = req.headers.authorization
+  if (!h) return res.status(401).json({ error: 'Missing token' })
+  const token = h.replace('Bearer ', '')
+  let payload = null
+  try {
+    payload = jwt.verify(token, JWT_SECRET)
+  } catch (e) {
+    try {
+      payload = await admin.auth().verifyIdToken(token)
+    } catch (ex) {
+      return res.status(401).json({ error: 'Invalid token' })
+    }
+  }
+  const uid = payload.uid
+  const email = payload.email || ''
+  if (await isAdminUser(uid, email)) {
+    req.user = { uid, email }
+    return next()
+  }
+  return res.status(403).json({ error: 'Admin required' })
+}
+
+// Public config endpoint (no client-side Firestore access required)
+app.get('/api/config/:doc', async (req, res) => {
+  try {
+    const docName = req.params.doc
+    if (!admin.apps.length) {
+      return res.status(500).json({ error: 'Server admin not configured' })
+    }
+    const snap = await admin.firestore().collection('config').doc(docName).get()
+    if (!snap.exists) return res.status(404).json({ error: 'Not found' })
+    return res.json({ data: snap.data() })
+  } catch (e) {
+    console.error('Failed to fetch config', e && (e.stack || e.message) || e)
+    return res.status(500).json({ error: 'Failed to fetch config' })
+  }
+})
+
+// Admin-only update endpoint
+app.put('/api/config/:doc', verifyAdmin, async (req, res) => {
+  try {
+    const docName = req.params.doc
+    const payload = req.body || {}
+    if (!admin.apps.length) return res.status(500).json({ error: 'Server admin not configured' })
+    await admin.firestore().collection('config').doc(docName).set(payload, { merge: true })
+    return res.json({ ok: true })
+  } catch (e) {
+    console.error('Failed to set config', e && (e.stack || e.message) || e)
+    return res.status(500).json({ error: 'Failed to set config' })
+  }
+})
+
 // Dev-only helper to impersonate a user (disabled in production)
 if (process.env.NODE_ENV !== 'production') {
   app.post('/api/__dev/impersonate', async (req, res) => {

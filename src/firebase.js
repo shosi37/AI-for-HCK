@@ -109,23 +109,31 @@ export async function saveUserToFirestore(user, { forcePhotoUpdate = false } = {
 
 export async function setChatbotConfig(config) {
   try {
-    const ref = doc(db, 'config', 'chatbot')
-    await setDoc(ref, config, { merge: true })
+    const { fetchWithAuth } = await import('./utils/api')
+    const res = await fetchWithAuth('/api/config/chatbot', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) })
+    if (!res.ok) {
+      const t = await res.text().catch(() => null)
+      throw new Error('Failed to set chatbot config: ' + (t || res.status))
+    }
+    return true
   } catch (e) {
     console.error('Failed to set chatbot config', e)
+    throw e
   }
 }
 
 export async function getChatbotConfig() {
   try {
-    const ref = doc(db, 'config', 'chatbot')
-    const snap = await getDoc(ref)
-    return snap.exists() ? snap.data() : null
+    const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+    const res = await fetch(base + '/api/config/chatbot')
+    if (!res.ok) return null
+    const b = await res.json().catch(() => ({}))
+    return b.data || null
   } catch (e) {
     console.error('Failed to get chatbot config', e)
     return null
   }
-}
+} 
 
 export async function getUserFromFirestore(uid) {
   if (!uid) return null
@@ -155,9 +163,11 @@ export async function getAllUsers() {
 // FAQ helpers for admin to manage chatbot FAQ
 export async function getFAQ() {
   try {
-    const ref = doc(db, 'config', 'faq')
-    const snap = await getDoc(ref)
-    return snap.exists() ? snap.data().items || [] : []
+    const base = import.meta.env.VITE_BACKEND_URL || (import.meta.env.MODE !== 'production' ? `${location.protocol}//${location.hostname}:4000` : '')
+    const res = await fetch(base + '/api/config/faq')
+    if (!res.ok) return []
+    const b = await res.json().catch(() => ({}))
+    return (b.data && (b.data.items || [])) || []
   } catch (e) {
     console.error('Failed to get FAQ', e)
     return []
@@ -166,8 +176,13 @@ export async function getFAQ() {
 
 export async function setFAQ(items) {
   try {
-    const ref = doc(db, 'config', 'faq')
-    await setDoc(ref, { items }, { merge: true })
+    const { fetchWithAuth } = await import('./utils/api')
+    const res = await fetchWithAuth('/api/config/faq', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) })
+    if (!res.ok) {
+      const t = await res.text().catch(() => null)
+      throw new Error('Failed to set FAQ: ' + (t || res.status))
+    }
+    return true
   } catch (e) {
     console.error('Failed to set FAQ', e)
     throw e
