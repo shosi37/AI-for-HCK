@@ -1,0 +1,96 @@
+@import "tailwindcss";
+@config "../tailwind.config.cjs";
+
+@layer base {
+  :root {
+    --accent: 221 90 255;
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+}
+
+body {
+  @apply bg-gray-50 text-gray-800 transition-colors duration-200;
+}
+
+/* 
+   Ensure body gets the dark mode styles whether the class is on HTML (selector strategy) 
+   or on BODY (our fallback in ThemeContext) 
+*/
+:root.dark body,
+body.dark {
+  @apply bg-gray-900 text-gray-100;
+}
+
+.focus-ring:focus {
+  outline: 2px solid rgba(var(--accent) / 0.18);
+  outline-offset: 2px;
+}
+
+.glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.55));
+  backdrop-filter: blur(6px);
+}
+
+.dark .glass {
+  background: linear-gradient(135deg, rgba(15, 15, 20, 0.6), rgba(20, 20, 25, 0.5));
+}
+
+.animate-blob {
+  animation: blob 8s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+@keyframes blob {
+  0% {
+    transform: scale(1)
+  }
+
+  33% {
+    transform: scale(1.12)
+  }
+
+  66% {
+    transform: scale(0.95)
+  }
+
+  100% {
+    transform: scale(1)
+  }
+}
+
+.btn-primary {
+  @apply px-6 py-3 rounded-lg shadow text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95
+}
+
+.btn-ghost {
+  @apply px-4 py-2 rounded border bg-transparent
+}
+
+/* Enhanced input visuals */
+.focus-ring:focus {
+  outline: 2px solid rgba(221, 90, 255, 0.18);
+  outline-offset: 2px;
+}
+
+.ring-red-500\/40 {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.16);
+}
+
+.ring-green-400\/30 {
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+}
+
+button.suggestion {
+  @apply absolute right-12 top-1/2 -translate-y-1/2 text-sm bg-gray-800/60 dark:bg-gray-700/60 text-gray-200 px-2 py-1 rounded-md hover:opacity-90;
+}
+
+input~span svg {
+  vertical-align: middle;
+}
