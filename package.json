@@ -1,0 +1,15 @@
+{
+  "name": "chatbot-auth-fullstack",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "npm --prefix backend run dev",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "build": "npm --prefix frontend run build",
+    "start-backend": "npm --prefix backend start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
