@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# env + secrets
+.env
+*.pem
+*.key
+service-account.json
+
+# build output
+dist/
+build/
+
+# logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
