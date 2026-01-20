@@ -24,6 +24,7 @@ export interface UserProfile {
   department?: string;
   year?: string;
   createdAt: Date;
+  isVerified: boolean;
 }
 
 // Sign up new user
@@ -52,6 +53,7 @@ export const signUp = async (
       department,
       year,
       createdAt: new Date(),
+      isVerified: false, // Must verify via OTP
     };
 
     await setDoc(doc(db, 'users', user.uid), userProfile);
@@ -79,6 +81,9 @@ export const signIn = async (email: string, password: string): Promise<UserProfi
         if (!profileData.id) {
           profileData.id = user.uid;
         }
+        if (profileData.isVerified === undefined) {
+          profileData.isVerified = user.emailVerified || false;
+        }
         return profileData;
       }
     } catch (firestoreError) {
@@ -93,6 +98,7 @@ export const signIn = async (email: string, password: string): Promise<UserProfi
       email: user.email || email,
       name: user.displayName || user.email?.split('@')[0] || 'User',
       createdAt: new Date(),
+      isVerified: user.emailVerified || false,
     };
 
     return fallbackProfile;
@@ -144,6 +150,7 @@ export const getCurrentUserProfile = async (user: FirebaseUser): Promise<UserPro
         email: user.email || '',
         name: user.displayName || user.email?.split('@')[0] || 'User',
         createdAt: new Date(),
+        isVerified: user.emailVerified || false,
       };
       return fallbackProfile;
     }
@@ -157,16 +164,21 @@ export const getCurrentUserProfile = async (user: FirebaseUser): Promise<UserPro
 
     return profileData;
   } catch (error: any) {
-    console.error('Get user profile error:', error);
+    if (error.code === 'permission-denied' || error.message.includes('Missing or insufficient permissions')) {
+      console.warn('Firestore permission denied (expected for client-side); falling back to backend/auth profile.');
+    } else {
+      console.error('Get user profile error:', error);
+    }
 
     // For ANY error, create fallback profile from Firebase Auth
     // This ensures we always have a valid user object with an ID
-    console.log('Error getting user profile, creating fallback from Firebase Auth');
+    // console.log('Error getting user profile, creating fallback from Firebase Auth'); // Reduced verbosity
     const fallbackProfile: UserProfile = {
       id: user.uid,
       email: user.email || '',
       name: user.displayName || user.email?.split('@')[0] || 'User',
       createdAt: new Date(),
+      isVerified: user.emailVerified || false,
     };
     return fallbackProfile;
   }
@@ -279,6 +291,7 @@ export const signInWithGoogle = async (): Promise<{
           email: user.email!,
           name: user.displayName || user.email?.split('@')[0] || 'User',
           createdAt: new Date(),
+          isVerified: true, // Google users are considered verified
         };
 
         await setDoc(doc(db, 'users', user.uid), userProfile);
@@ -287,12 +300,12 @@ export const signInWithGoogle = async (): Promise<{
     } catch (firestoreError) {
       console.error('Firestore error during Google sign in:', firestoreError);
 
-      // Create fallback profile
       userProfile = {
         id: user.uid,
         email: user.email || '',
         name: user.displayName || user.email?.split('@')[0] || 'User',
         createdAt: new Date(),
+        isVerified: true, // Google users are verified
       };
     }
 
