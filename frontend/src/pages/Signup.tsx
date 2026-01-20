@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { User as UserType } from "../types";
@@ -21,6 +21,10 @@ export default function Signup({ onSignup }: SignupProps) {
     year: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [tempUser, setTempUser] = useState<UserType | null>(null);
+  const [resendTimer, setResendTimer] = useState(0);
   const navigate = useNavigate();
 
   const handleChange = (
@@ -64,10 +68,23 @@ export default function Signup({ onSignup }: SignupProps) {
         formData.year
       );
 
-      // Login user
-      onSignup(userProfile);
-      notify.signup.success(formData.name);
-      navigate("/dashboard");
+      // Instead of logging in directly, show OTP
+      setTempUser(userProfile);
+
+      // Request OTP from backend
+      try {
+        await fetch('http://localhost:4000/api/otp/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email, uid: userProfile.id }),
+        });
+        setShowOtp(true);
+        setResendTimer(60);
+        notify.signup.success("Account created! Please check your email for the verification code.");
+      } catch (otpErr) {
+        console.error('Failed to send OTP:', otpErr);
+        notify.signup.error("Account created, but we couldn't send the verification code. Please try logging in to resend.");
+      }
     } catch (err: any) {
       console.error('Signup error:', err);
       if (err.message.includes('email-already-in-use')) {
@@ -103,6 +120,120 @@ export default function Signup({ onSignup }: SignupProps) {
       setIsLoading(false);
     }
   };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tempUser || !otp) return;
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:4000/api/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: tempUser.email, otp, uid: tempUser.id }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        onSignup({ ...tempUser, isVerified: true });
+        notify.signup.success(tempUser.name);
+        navigate("/dashboard");
+      } else {
+        notify.signup.error(data.error || "Invalid verification code");
+      }
+    } catch (err: any) {
+      notify.signup.error("Verification failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!tempUser || resendTimer > 0) return;
+    setIsLoading(true);
+    try {
+      await fetch('http://localhost:4000/api/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: tempUser.email, uid: tempUser.id }),
+      });
+      setResendTimer(60);
+      notify.signup.success("New verification code sent!");
+    } catch (err) {
+      notify.signup.error("Failed to resend code. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let interval: any;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  if (showOtp) {
+    return (
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+        <AnimatedBackground />
+        <div className="w-full max-w-md relative z-10">
+          <div className="glass rounded-3xl p-8 shadow-2xl text-center">
+            <h1 className="text-gray-900 dark:text-white text-3xl mb-4">Verify Email</h1>
+            <p className="text-gray-500 dark:text-white/60 text-sm mb-8">
+              We've sent a 6-digit code to <span className="text-indigo-600 dark:text-indigo-400 font-bold">{tempUser?.email}</span>
+            </p>
+
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <input
+                type="text"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                className="w-full bg-gray-100 dark:bg-[#2d3748] text-gray-900 dark:text-white text-center text-4xl tracking-widest py-4 rounded-xl border border-transparent focus:border-indigo-500 focus:outline-none placeholder:text-gray-400"
+                placeholder="000000"
+                required
+              />
+
+              <button
+                type="submit"
+                disabled={isLoading || otp.length < 6}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                {isLoading ? "Verifying..." : "Verify & Continue"}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/5">
+              <p className="text-sm text-gray-500 dark:text-white/40 mb-3">
+                Didn't receive the code?
+              </p>
+              <button
+                onClick={handleResendOtp}
+                disabled={isLoading || resendTimer > 0}
+                className={`text-sm font-bold transition-colors ${resendTimer > 0
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 underline"
+                  }`}
+              >
+                {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend Verification Code"}
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowOtp(false)}
+              className="mt-6 text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-medium"
+            >
+              Back to Signup
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
