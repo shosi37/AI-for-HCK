@@ -86,7 +86,6 @@ export default function ProfileEdit({
           const parsed = JSON.parse(existingUser);
           const newBackendUser = { ...parsed, displayName: formData.name, email: formData.email, ...updatedUser };
           localStorage.setItem('backendUser', JSON.stringify(newBackendUser));
-          sessionStorage.setItem('backendUser', JSON.stringify(newBackendUser));
         } catch (e) {
           console.error('Failed to update storage', e);
         }
