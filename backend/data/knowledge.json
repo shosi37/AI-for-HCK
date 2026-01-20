@@ -1,0 +1,55 @@
+{
+    "college_name": "Herald College Kathmandu (HCK)",
+    "location": "Kathmandu, Nepal",
+    "motto": "Providing world-class education in Nepal",
+    "courses": [
+        {
+            "name": "BSc (Hons) Computer Science",
+            "duration": "3 Years",
+            "entry_requirements": "Plus 2 (NEB) with 55% or above, or A-Levels with 2.0 GPA."
+        },
+        {
+            "name": "Bachelor in International Business Management (BIBM)",
+            "duration": "3 Years",
+            "entry_requirements": "Plus 2 (NEB) with 50% or above, or A-Levels."
+        }
+    ],
+    "admissions": {
+        "process": "1. Fill the application form. 2. Sit for an interview/test. 3. Receive offer letter. 4. Pay the admission fee.",
+        "intakes": "January, May, and September"
+    },
+    "scholarships": {
+        "types": "Academic Merit Scholarship, Extra-Curricular Excellence, and Need-based Financial Aid.",
+        "eligibility": "Varies by scholarship type; usually based on previous academic records (NEB/A-Level results)."
+    },
+    "facilities": [
+        "High-tech Computer Labs",
+        "Modern Library",
+        "Cafeteria",
+        "Student Lounge",
+        "Free Wi-Fi"
+    ],
+    "partnerships": [
+        "University of Wolverhampton, UK"
+    ],
+    "contact_info": {
+        "phone": "+977-1-4433322",
+        "email": "info@heraldcollege.edu.np",
+        "website": "https://heraldcollege.edu.np",
+        "address": "Naxal, Kathmandu, Nepal"
+    },
+    "frequently_asked_questions": [
+        {
+            "question": "Is Herald College affiliated with any university?",
+            "answer": "Yes, Herald College Kathmandu is in direct partnership with the University of Wolverhampton, UK."
+        },
+        {
+            "question": "What courses are offered?",
+            "answer": "We offer BSc (Hons) Computer Science and Bachelor in International Business Management (BIBM)."
+        },
+        {
+            "question": "Does the college provide placement assistance?",
+            "answer": "Yes, our career placement cell helps students find internships and job opportunities."
+        }
+    ]
+}
