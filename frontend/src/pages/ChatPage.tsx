@@ -29,7 +29,7 @@ import ThemeToggle from '../components/common/ThemeToggle';
 import EmailEditModal from '../components/modals/EmailEditModal';
 import PasswordEditModal from '../components/modals/PasswordEditModal';
 import AnimatedBackground from '../components/common/AnimatedBackground';
-import { notify, showSuccessToast } from '../utils/notifications';
+import { showErrorToast, showSuccessToast } from '../utils/notifications';
 
 interface Message {
   id: string;
@@ -69,6 +69,7 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleUpdateUser = (updatedUser: UserType) => {
     setCurrentUser(updatedUser);
@@ -174,104 +175,12 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
     setCurrentChat(null);
   };
 
-  const getAIResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-
-    // First, check if the question matches any FAQ
-    for (const faq of faqs) {
-      const lowerQuestion = faq.question.toLowerCase();
-      const lowerAnswer = faq.answer.toLowerCase();
-
-      // Check if user message matches the FAQ question (partial match)
-      if (lowerMessage.includes(lowerQuestion) || lowerQuestion.includes(lowerMessage)) {
-        return faq.answer;
-      }
-
-      // Check for keyword matches in FAQ question
-      const questionWords = lowerQuestion.split(' ').filter(word => word.length > 3);
-      const matchCount = questionWords.filter(word => lowerMessage.includes(word)).length;
-      if (matchCount >= Math.min(2, questionWords.length)) {
-        return faq.answer;
-      }
-    }
-
-    // If no FAQ match, use default responses
-    if (
-      lowerMessage.includes('admission') ||
-      lowerMessage.includes('apply') ||
-      lowerMessage.includes('enroll')
-    ) {
-      return "To apply for admission to HCK College, you can visit our Admissions Office or apply online through our portal. We accept applications twice a year for Fall and Spring semesters. Required documents include your transcripts, recommendation letters, and a personal statement. Would you like more specific information about any particular program?";
-    }
-
-    if (
-      lowerMessage.includes('course') ||
-      lowerMessage.includes('class') ||
-      lowerMessage.includes('subject')
-    ) {
-      return "HCK College offers a wide range of courses across various departments including Computer Science, Engineering, Business Administration, Arts & Humanities, Sciences, and Medicine. You can view the complete course catalog on our website or visit the Academic Affairs office. Which department are you interested in?";
-    }
-
-    if (lowerMessage.includes('deadline') || lowerMessage.includes('semester')) {
-      return "Semester deadlines vary by department — check the academic calendar on the college portal or ask the registrar for exact dates.";
-    }
-
-    if (
-      lowerMessage.includes('scholarship') ||
-      lowerMessage.includes('financial aid')
-    ) {
-      return "Good question — I recommend checking the official student portal for the most up-to-date info.";
-    }
-
-    if (
-      lowerMessage.includes('it support') ||
-      lowerMessage.includes('technical') ||
-      lowerMessage.includes('contact it')
-    ) {
-      return "That sounds important — would you like me to show related resources or contacts?";
-    }
-
-    if (lowerMessage.includes('timetable') || lowerMessage.includes('schedule')) {
-      return "You can find your timetable on the student portal under 'Academic Schedule'. If you need help accessing it, the IT support desk can assist you.";
-    }
-
-    if (
-      lowerMessage.includes('library') ||
-      lowerMessage.includes('book')
-    ) {
-      return "The HCK College Library is open Monday-Friday from 8 AM to 10 PM, and weekends from 10 AM to 6 PM. We have an extensive collection of physical books, e-books, journals, and digital resources. Students can borrow up to 5 books at a time for 2 weeks.";
-    }
-
-    if (
-      lowerMessage.includes('fee') ||
-      lowerMessage.includes('tuition') ||
-      lowerMessage.includes('payment')
-    ) {
-      return "Tuition fees vary by program and year of study. We offer flexible payment plans and various scholarship opportunities for eligible students. For detailed fee information, please contact the Finance Office at finance@hck.edu.";
-    }
-
-    if (
-      lowerMessage.includes('hello') ||
-      lowerMessage.includes('hi') ||
-      lowerMessage.includes('hey')
-    ) {
-      return `Hello! How can I help you today? Feel free to ask me about admissions, courses, facilities, events, or anything else related to HCK College.`;
-    }
-
-    return "That's a great question! While I can help with general inquiries about HCK College, for specific details I'd recommend visiting the Administration Office, checking our website at www.hck.edu, or emailing info@hck.edu. Is there anything else I can help you with?";
-  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isLoading) return;
 
-    if (!user?.id) {
-      return;
-    }
-
-    // Create new chat if none exists
-    if (!currentChat) {
-      createNewChat();
+    if (!user?.id || !currentChat) {
       return;
     }
 
@@ -282,28 +191,61 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
       timestamp: new Date(),
     };
 
-    const aiResponse: Message = {
-      id: (Date.now() + 1).toString(),
-      text: getAIResponse(inputMessage),
-      sender: 'ai',
-      timestamp: new Date(),
-      helpful: null,
-    };
-
-    // Create updated chat object
-    const updatedChat: Chat = {
+    // Update local state first for immediate feedback
+    const chatWithUserMessage: Chat = {
       ...currentChat,
-      messages: [...currentChat.messages, userMessage, aiResponse],
+      messages: [...currentChat.messages, userMessage],
       title: currentChat.messages.length === 1 ? inputMessage.slice(0, 50) : currentChat.title,
       timestamp: new Date(),
     };
 
-    // Update local state
-    setCurrentChat(updatedChat);
+    setCurrentChat(chatWithUserMessage);
     setInputMessage('');
+    setIsLoading(true);
 
-    // Save to Firebase
-    await updateChat(user.id, updatedChat);
+    try {
+      // Prepare messages for OpenAI
+      const apiMessages = chatWithUserMessage.messages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text,
+      }));
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: apiMessages }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
+
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: data.message.content,
+        sender: 'ai',
+        timestamp: new Date(),
+        helpful: null,
+      };
+
+      const finalChat: Chat = {
+        ...chatWithUserMessage,
+        messages: [...chatWithUserMessage.messages, aiResponse],
+      };
+
+      setCurrentChat(finalChat);
+      // Save to Firebase
+      await updateChat(user.id, finalChat);
+    } catch (error) {
+      console.error('Chat Error:', error);
+      showErrorToast('Chat Error', 'Failed to get AI response. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFeedback = async (messageId: string, isHelpful: boolean) => {
@@ -613,6 +555,15 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
                 </div>
               ))}
 
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-200 dark:bg-[#2d3748] text-gray-900 dark:text-white/90 rounded-2xl px-4 py-3 flex gap-1 items-center">
+                    <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                    <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
+                  </div>
+                </div>
+              )}
               <div id="messages-end" />
             </>
           )}
