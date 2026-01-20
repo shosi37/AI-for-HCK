@@ -1,5 +1,8 @@
 {
-  "watch": ["server.js"],
+  "watch": [
+    "server.js",
+    ".env"
+  ],
   "ignore": [
     "*.log",
     "server.err.log",
