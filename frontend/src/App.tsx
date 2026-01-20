@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './utils/firebase/config';
 import AnimatedBackground from './components/common/AnimatedBackground';
@@ -14,7 +14,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import { Toaster } from 'sonner';
-import { notify } from './utils/notifications';
+import { notify, showErrorToast } from './utils/notifications';
 import { User } from './types';
 
 
@@ -23,68 +23,189 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const lastValidToken = useRef<string | null>(null);
 
   useEffect(() => {
-    // Listen to Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in
-        try {
-          // Get basic profile
-          const userProfile = await getCurrentUserProfile(firebaseUser);
-          if (userProfile) {
-            setUser(userProfile);
-            setIsAdmin(checkIsAdmin(userProfile.email));
+    const initAuth = async () => {
+      // Use default persistence (Local), so no setPersistence call needed.
+      const { signOut } = await import('firebase/auth');
+
+      // Listen to Firebase auth state changes
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        // Dynamic check for new tab launch via session marker
+        // If activeSession is MISSING, we dictate that this is a "Launch".
+        // During launch, we do NOT allow auto-login.
+        const isActiveSession = sessionStorage.getItem('activeSession');
+
+        if (!isActiveSession) {
+          // This is a new tab / launch scenario.
+          if (firebaseUser) {
+            // User exists but shouldn't (auto-login attempted).
+            // Force clear everything and sign out.
+            console.log('Launch detected with existing user (auto-login), forcing logout...');
+            await signOut(auth);
+            localStorage.clear();
+            setUser(null);
+            setIsLoading(false);
+
+            // IMPORTANT: We do NOT set activeSession here.
+            // We wait for the next event (which will be null user) to activate the session.
+            return;
+          } else {
+            // User is null. This is the clean state we want on launch.
+            // Now we can Mark session as active.
+            console.log('Launch detected with clean state. Activating session.');
+            sessionStorage.setItem('activeSession', 'true');
+            setUser(null);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // If we are here, activeSession is TRUE.
+        // This means we are in a valid session (either after launch cleanup, or a reload).
+        if (firebaseUser) {
+          // 1. Check if we have a stored token that needs verification
+          const storedToken = localStorage.getItem('authToken');
+          let verificationPassed = false;
+
+          if (storedToken) {
+            try {
+              // Verify against backend using the stored token
+              const verifyRes = await fetch('http://localhost:4000/api/profile', {
+                headers: { 'Authorization': `Bearer ${storedToken}` }
+              });
+
+              if (!verifyRes.ok) {
+                throw new Error('Token validation failed');
+              }
+              verificationPassed = true;
+              lastValidToken.current = storedToken; // Mark this as valid
+            } catch (err) {
+              console.error('Stored token invalid or tampered, forcing logout', err);
+              const { logOut } = await import('./utils/firebase/auth');
+              await logOut();
+              setUser(null);
+              setIsAdmin(false);
+              showErrorToast('Session Expired', 'Please login again.');
+              return; // STOP HERE
+            }
           }
 
-          // PERFOM BACKEND VERIFICATION & STORAGE GLOBALLY
-          const idToken = await firebaseUser.getIdToken();
-          const backendUrl = 'http://localhost:4000/api/login-token';
+          // 2. If verification passed OR we don't have a token yet (fresh login flow), proceed.
+          try {
+            // Get basic profile
+            const userProfile = await getCurrentUserProfile(firebaseUser);
+            if (userProfile) {
+              setUser(userProfile);
+              setIsAdmin(checkIsAdmin(userProfile.email));
+            }
 
-          fetch(backendUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken }),
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.token) {
-                console.log('Global backend verification success');
-                // Persist to Storage for User Visibility
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('backendUser', JSON.stringify(data.user));
-                sessionStorage.setItem('authToken', data.token);
-                sessionStorage.setItem('backendUser', JSON.stringify(data.user));
+            // 3. Global Backend Verification / Session Refresh
+            const idToken = await firebaseUser.getIdToken();
+            const backendUrl = 'http://localhost:4000/api/login-token';
 
-                if (data.user?.uid) {
-                  localStorage.setItem('sessionId', data.user.uid);
-                  sessionStorage.setItem('sessionId', data.user.uid);
-                }
-              }
+            fetch(backendUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idToken }),
             })
-            .catch(err => console.error('Global verification failed', err));
+              .then(res => res.json())
+              .then(data => {
+                if (data.token) {
+                  lastValidToken.current = data.token; // Update valid reference
+                  localStorage.setItem('authToken', data.token);
+                  localStorage.setItem('backendUser', JSON.stringify(data.user));
 
-        } catch (e) {
-          console.error('Error fetching user profile', e);
+                  if (data.user?.uid) {
+                    localStorage.setItem('sessionId', data.user.uid);
+                  }
+
+                  // Update UI with verified backend data (bypasses Firestore rules issues)
+                  setUser(prev => ({ ...prev, ...data.user }));
+                  if (data.user.email) setIsAdmin(checkIsAdmin(data.user.email));
+                }
+              })
+              .catch(err => console.error('Global verification failed', err));
+
+          } catch (e) {
+            console.error('Error fetching user profile', e);
+          }
+        } else {
+          // User is signed out
+          setUser(null);
+          setIsAdmin(false);
+          // Clear storage
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('backendUser');
+          localStorage.removeItem('sessionId');
+
+          // We keep activeSession true so user can re-login in this tab without triggering 'Launch' logic
+          // We do NOT clear activeSession here, because a user might just click "Logout".
+          // Staying in the same tab, we want them to be able to log back in without 'launch' logic triggering again.
         }
-      } else {
-        // User is signed out
-        setUser(null);
-        setIsAdmin(false);
-        // Clear storage
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('backendUser');
-        localStorage.removeItem('sessionId');
-        sessionStorage.removeItem('authToken');
-        sessionStorage.removeItem('backendUser');
-        sessionStorage.removeItem('sessionId');
-      }
-      setIsLoading(false);
-    });
+        setIsLoading(false);
+      });
 
-    // Cleanup subscription
-    return () => unsubscribe();
+      return unsubscribe;
+    };
+
+    const cleanupPromise = initAuth();
+
+    // Polling for manual token tampering in DevTools
+    const pollInterval = setInterval(() => {
+      const token = localStorage.getItem('authToken');
+
+      // 1. Garbage check
+      if (token && token.length < 20) {
+        showErrorToast('Session Expired', 'Invalid token detected.');
+        import('./utils/firebase/auth').then(({ logOut }) => logOut());
+        return;
+      }
+
+      // 2. Strict Equality Check (Anti-Tamper)
+      // REMOVED: conflicting with multi-tab usage where token rotates.
+      // Backend signature verification is sufficient for security.
+      /*
+      if (lastValidToken.current && token && token !== lastValidToken.current) {
+        // This causes false positives when another tab updates the token.
+      }
+      */
+    }, 1000);
+
+    return () => {
+      cleanupPromise.then(unsubscribe => unsubscribe && unsubscribe());
+      clearInterval(pollInterval);
+    };
   }, []);
+
+  const refreshUser = async () => {
+    if (!auth.currentUser) return;
+    try {
+      const firebaseUser = auth.currentUser;
+      const userProfile = await getCurrentUserProfile(firebaseUser);
+      if (userProfile) {
+        setUser(userProfile);
+      }
+
+      const idToken = await firebaseUser.getIdToken(true); // Force refresh
+      const backendUrl = 'http://localhost:4000/api/login-token';
+      const res = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        lastValidToken.current = data.token;
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('backendUser', JSON.stringify(data.user));
+        setUser(prev => ({ ...prev, ...data.user }));
+      }
+    } catch (e) {
+      console.error('Manual refresh failed', e);
+    }
+  };
 
   const handleLogin = (userData: User) => {
     setUser(userData);
@@ -156,7 +277,7 @@ function App() {
             path="/dashboard"
             element={
               user ? (
-                <Dashboard user={user} onLogout={handleLogout} />
+                <Dashboard user={user} onLogout={handleLogout} onRefresh={refreshUser} />
               ) : (
                 <Navigate to="/login" />
               )
