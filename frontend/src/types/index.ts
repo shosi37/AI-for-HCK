@@ -6,4 +6,5 @@ export interface User {
     department?: string;
     year?: string;
     avatar?: string;
+    isVerified: boolean;
 }
