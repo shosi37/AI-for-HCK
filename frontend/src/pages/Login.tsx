@@ -4,6 +4,7 @@ import { ArrowLeft, AlertTriangle, Check, Loader2, Shield, CheckCircle } from 'l
 import { notify } from '../utils/notifications';
 import type { User } from '../types';
 import { signIn, signInWithGoogle } from '../utils/firebase/auth';
+import { auth } from '../utils/firebase/config';
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 
@@ -21,7 +22,7 @@ export default function Login({ onLogin, onAdminLogin }: LoginProps) {
 
   // Debug State
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const [authTokens, setAuthTokens] = useState<{ idToken?: string; accessToken?: string }>({});
+  const [authTokens, setAuthTokens] = useState<{ idToken?: string; accessToken?: string; backendToken?: string }>({});
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [finalUserProfile, setFinalUserProfile] = useState<User | null>(null);
 
@@ -76,16 +77,49 @@ export default function Login({ onLogin, onAdminLogin }: LoginProps) {
     try {
       // Sign in with Firebase
       const userProfile = await signIn(email, password);
+
+      // Get ID token immediately for UI/Storage parity with Google Sign In
+      let idToken = '';
+      try {
+        if (auth.currentUser) {
+          idToken = await auth.currentUser.getIdToken();
+          localStorage.setItem('firebaseIdToken', idToken);
+          setAuthTokens(prev => ({ ...prev, idToken }));
+        }
+      } catch (tokenErr) {
+        console.warn('Failed to retrieve ID token after login', tokenErr);
+      }
+
       onLogin(userProfile);
+      setFinalUserProfile(userProfile);
       notify.login.success(userProfile.name);
 
-      // Check if admin
-      if (email === 'admin@hck.edu') {
-        onAdminLogin();
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      // Verify with Backend (Get authToken parity)
+      // Note: We already likely have tokens from the backend if onLogin does it, 
+      // but to ensure UI shows it nicely in the success screen:
+      try {
+        if (idToken) {
+          const backendUrl = 'http://localhost:4000/api/login-token';
+          fetch(backendUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+          }).then(res => res.json()).then(data => {
+            if (data.token) {
+              setAuthTokens(prev => ({ ...prev, backendToken: data.token }));
+              // Ensure storage has it (though onLogin might have handled it)
+              localStorage.setItem('authToken', data.token);
+            }
+          }).catch(e => console.warn('Background token fetch failed', e));
+        }
+      } catch (e) { }
+
+      // Show Success Screen instead of immediate navigate
+      setLoginSuccess(true);
+
+      // Check if admin (Logic moved to handleProceed or just checked here for redirection target)
+      // We will let handleProceed handle the navigation now.
+
     } catch (err: any) {
       console.error('Login error:', err);
 
@@ -103,8 +137,11 @@ export default function Login({ onLogin, onAdminLogin }: LoginProps) {
       } else {
         notify.login.error(err.message);
       }
+      setIsLoading(false); // Only stop loading on error, keep loading true on success until transition or component unmount? 
+      // Actually, we want to show the success screen, so stop loading.
+      setIsLoading(false); // But wait, success screen needs isLoading false? Yes.
     } finally {
-      setIsLoading(false);
+      if (!loginSuccess) setIsLoading(false); // Ensure loading stops if not success (already handled in catch, but safety)
     }
   };
 
@@ -134,15 +171,17 @@ export default function Login({ onLogin, onAdminLogin }: LoginProps) {
           setVerificationResult({ success: true, data });
           notify.login.success(data.user?.displayName || data.user?.email?.split('@')[0] || 'User');
 
-          // Store in Session Storage as requested
+          // Store in Session Storage as requested -> Changed to Local Storage
           if (data.token) {
-            sessionStorage.setItem('authToken', data.token);
-            sessionStorage.setItem('backendUser', JSON.stringify(data.user));
-            if (data.user?.uid) sessionStorage.setItem('sessionId', data.user.uid);
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('backendUser', JSON.stringify(data.user));
+            if (data.user?.uid) localStorage.setItem('sessionId', data.user.uid);
           }
           // Also store Google tokens if available
-          if (idToken) sessionStorage.setItem('firebaseIdToken', idToken);
-          if (accessToken) sessionStorage.setItem('googleAccessToken', accessToken);
+          if (idToken) localStorage.setItem('firebaseIdToken', idToken);
+          if (accessToken) localStorage.setItem('googleAccessToken', accessToken);
+
+          setAuthTokens(prev => ({ ...prev, backendToken: data.token }));
 
         } else {
           const errText = await response.text();
@@ -178,44 +217,58 @@ export default function Login({ onLogin, onAdminLogin }: LoginProps) {
           </p>
 
           <div className="text-left space-y-4 mb-8">
-            <div className="bg-gray-50/50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-              <h3 className="text-sm font-bold text-gray-500 dark:text-white/40 mb-2 uppercase tracking-wider">Firebase ID Token</h3>
-              <div className="relative group">
-                <code className="text-[10px] break-all text-indigo-600 dark:text-indigo-400 block max-h-32 overflow-y-auto custom-scrollbar">
+            {authTokens.backendToken && (
+              <div className="bg-indigo-50/50 dark:bg-indigo-500/10 p-4 rounded-xl border border-indigo-200 dark:border-indigo-500/20 shadow-sm">
+                <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Unique Backend JWT (Changes every time)
+                </h3>
+                <code className="text-[10px] break-all text-indigo-700 dark:text-indigo-300 block max-h-24 overflow-y-auto custom-scrollbar font-mono leading-relaxed bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                  {authTokens.backendToken}
+                </code>
+              </div>
+            )}
+
+            {authTokens.idToken && (
+              <div className="bg-gray-50/50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                <h3 className="text-sm font-bold text-gray-400 dark:text-white/40 mb-2 uppercase tracking-wider">
+                  Firebase ID Token (Google Identity)
+                </h3>
+                <code className="text-[10px] break-all text-gray-600 dark:text-white/40 block max-h-24 overflow-y-auto custom-scrollbar">
                   {authTokens.idToken}
                 </code>
               </div>
-            </div>
+            )}
 
             {authTokens.accessToken && (
               <div className="bg-gray-50/50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                <h3 className="text-sm font-bold text-gray-500 dark:text-white/40 mb-2 uppercase tracking-wider">Google Access Token</h3>
-                <code className="text-[10px] break-all text-blue-600 dark:text-blue-400 block max-h-32 overflow-y-auto custom-scrollbar">
+                <h3 className="text-sm font-bold text-gray-400 dark:text-white/40 mb-2 uppercase tracking-wider">Google Access Token</h3>
+                <code className="text-[10px] break-all text-blue-600/60 dark:text-blue-400/60 block max-h-24 overflow-y-auto custom-scrollbar">
                   {authTokens.accessToken}
                 </code>
               </div>
             )}
-
-            {verificationResult && (
-              <div className={`p-4 rounded-xl border ${verificationResult.success ? 'bg-green-50/50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20 text-green-800 dark:text-green-400' : 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 text-red-800 dark:text-red-400'}`}>
-                <h3 className="text-sm font-bold mb-2 uppercase tracking-wider flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Backend Verification: {verificationResult.success ? 'PASSED' : 'FAILED'}
-                </h3>
-                {verificationResult.success ? (
-                  <div className="space-y-1">
-                    <p className="text-[10px] opacity-70 italic font-medium">Session Cookie has been set securely.</p>
-                  </div>
-                ) : (
-                  <p className="text-[10px] font-medium">{verificationResult.error || 'Unknown error occurred'}</p>
-                )}
-              </div>
-            )}
           </div>
+
+          {verificationResult && (
+            <div className={`p-4 rounded-xl border ${verificationResult.success ? 'bg-green-50/50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20 text-green-800 dark:text-green-400' : 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 text-red-800 dark:text-red-400'}`}>
+              <h3 className="text-sm font-bold mb-2 uppercase tracking-wider flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Backend Verification: {verificationResult.success ? 'PASSED' : 'FAILED'}
+              </h3>
+              {verificationResult.success ? (
+                <div className="space-y-1">
+                  <p className="text-[10px] opacity-70 italic font-medium">Session Cookie has been set securely.</p>
+                </div>
+              ) : (
+                <p className="text-[10px] font-medium">{verificationResult.error || 'Unknown error occurred'}</p>
+              )}
+            </div>
+          )}
 
           <button
             onClick={handleProceed}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group mt-6"
           >
             <span>Enter Dashboard</span>
             <Check className="w-5 h-5 group-hover:scale-110 transition-transform" />
