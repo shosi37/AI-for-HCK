@@ -1,4 +1,4 @@
-require('dotenv').config({ override: true });
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -16,7 +16,6 @@ const axios = require('axios'); // For AbstractAPI proxy if needed here, or move
 const authRoutes = require('./routes/auth');
 const otpRoutes = require('./routes/otp');
 const oauthRoutes = require('./routes/oauth');
-const chatRoutes = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -57,7 +56,6 @@ app.use(cookieParser());
 /* ---------------- Routes ---------------- */
 app.use('/api/otp', otpRoutes);
 app.use('/api/oauth', oauthRoutes); // This handles /api/oauth/google...
-app.use('/api/chat', chatRoutes); // This handles /api/chat...
 app.use('/api', authRoutes); // This handles /api/login, /api/profile etc.
 
 // Root check
