@@ -22,3 +22,10 @@ Thumbs.db
 .venv310/
 __pycache__/
 .vscode/
+
+.rasa/
+models/
+*.pkl
+*.gz
+*.zip
+__pycache__/
