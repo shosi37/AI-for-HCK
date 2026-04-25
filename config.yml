@@ -8,10 +8,17 @@ pipeline:
 - name: EntitySynonymMapper
 - name: ResponseSelector
   epochs: 100
+- name: FallbackClassifier
+  threshold: 0.2
+  ambiguity_threshold: 0.1
 
 policies:
-- name: MemoizationPolicy
-- name: RulePolicy
-- name: TEDPolicy
-  epochs: 100
+  - name: MemoizationPolicy
+  - name: RulePolicy
+    core_fallback_action_name: "action_default_fallback"
+    core_fallback_threshold: 0.3
+    enable_fallback_prediction: true
+  - name: TEDPolicy
+    epochs: 100
+
 assistant_id: 20260329-143648-extended-microphone

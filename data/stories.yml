@@ -178,4 +178,4 @@ stories:
 - story: fallback
   steps:
     - intent: nlu_fallback
-    - action: utter_fallback
+    - action: utter_nlu_fallback

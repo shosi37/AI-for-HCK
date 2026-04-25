@@ -245,9 +245,6 @@ responses:
   utter_ask_credit_transfer:
     - text: "Submit your transcripts and course details to the academic office for credit transfer evaluation. Processing time may vary."
 
-  utter_fallback:
-    - text: "I'm sorry, I didn't understand that. Could you please rephrase or ask something else?"
-
 actions: []
 
 session_config:

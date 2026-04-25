@@ -19,11 +19,6 @@ nlu:
     - hi there
     - hello bot
     - hey assistant
-    - hi, how are you?
-    - how are you?
-    - how are you doing?
-    - what's up?
-    - yo
 
 - intent: goodbye
   examples: |
