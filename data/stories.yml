@@ -1,0 +1,181 @@
+version: "3.1"
+
+stories:
+
+# ---------------- BASIC ----------------
+- story: greet and ask programs
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_programs
+    - action: utter_ask_programs
+
+- story: goodbye
+  steps:
+    - intent: goodbye
+    - action: utter_goodbye
+
+# ---------------- PROGRAMS ----------------
+- story: ask programs
+  steps:
+    - intent: ask_programs
+    - action: utter_ask_programs
+
+- story: ask undergraduate programs
+  steps:
+    - intent: ask_undergraduate_programs
+    - action: utter_ask_undergraduate_programs
+
+- story: ask postgraduate programs
+  steps:
+    - intent: ask_postgraduate_programs
+    - action: utter_ask_postgraduate_programs
+
+# ---------------- ADMISSION ----------------
+- story: ask admission requirements
+  steps:
+    - intent: ask_admission_requirements
+    - action: utter_ask_admission_requirements
+
+- story: ask apply admission
+  steps:
+    - intent: ask_apply_admission
+    - action: utter_ask_apply_admission
+
+- story: ask application deadline
+  steps:
+    - intent: ask_application_deadline
+    - action: utter_ask_application_deadline
+
+- story: ask application fee
+  steps:
+    - intent: ask_application_fee
+    - action: utter_ask_application_fee
+
+# ---------------- LOCATION & CONTACT ----------------
+- story: ask location
+  steps:
+    - intent: ask_location
+    - action: utter_ask_location
+
+- story: ask contact
+  steps:
+    - intent: ask_contact
+    - action: utter_ask_contact
+
+# ---------------- FEES ----------------
+- story: ask scholarships
+  steps:
+    - intent: ask_scholarships
+    - action: utter_ask_scholarships
+
+- story: ask cs tuition fees
+  steps:
+    - intent: ask_tuition_fees_cs
+    - action: utter_ask_tuition_fees_cs
+
+- story: ask ibm tuition fees
+  steps:
+    - intent: ask_tuition_fees_ibm
+    - action: utter_ask_tuition_fees_ibm
+
+- story: ask installment plans
+  steps:
+    - intent: ask_installment_plans
+    - action: utter_ask_installment_plans
+
+# ---------------- CAMPUS ----------------
+- story: ask cafeteria
+  steps:
+    - intent: ask_cafeteria
+    - action: utter_ask_cafeteria
+
+- story: ask library hours
+  steps:
+    - intent: ask_library_hours
+    - action: utter_ask_library_hours
+
+- story: ask wifi
+  steps:
+    - intent: ask_wifi
+    - action: utter_ask_wifi
+
+# ---------------- STUDENT LIFE ----------------
+- story: ask student clubs
+  steps:
+    - intent: ask_student_clubs
+    - action: utter_ask_student_clubs
+
+- story: ask extracurricular
+  steps:
+    - intent: ask_extracurricular
+    - action: utter_ask_extracurricular
+
+- story: ask sports facilities
+  steps:
+    - intent: ask_sports_facilities
+    - action: utter_ask_sports_facilities
+
+# ---------------- CAREER ----------------
+- story: ask internships
+  steps:
+    - intent: ask_internships
+    - action: utter_ask_internships
+
+- story: ask job placement
+  steps:
+    - intent: ask_job_placement
+    - action: utter_ask_job_placement
+
+- story: ask placement statistics
+  steps:
+    - intent: ask_placement_statistics
+    - action: utter_ask_placement_statistics
+
+# ---------------- FACILITIES ----------------
+- story: ask hostel facilities
+  steps:
+    - intent: ask_hostel_facilities
+    - action: utter_ask_hostel_facilities
+
+- story: ask transport facilities
+  steps:
+    - intent: ask_transport_facilities
+    - action: utter_ask_transport_facilities
+
+# ---------------- ACADEMIC ----------------
+- story: ask faculty qualifications
+  steps:
+    - intent: ask_faculty_qualifications
+    - action: utter_ask_faculty_qualifications
+
+- story: ask student counseling
+  steps:
+    - intent: ask_student_counseling
+    - action: utter_ask_student_counseling
+
+- story: ask student exchange
+  steps:
+    - intent: ask_student_exchange
+    - action: utter_ask_student_exchange
+
+- story: ask recommendation letter
+  steps:
+    - intent: ask_recommendation_letter
+    - action: utter_ask_recommendation_letter
+
+- story: ask online resources
+  steps:
+    - intent: ask_online_resources
+    - action: utter_ask_online_resources
+
+- story: ask credit transfer
+  steps:
+    - intent: ask_credit_transfer
+    - action: utter_ask_credit_transfer
+
+# ---------------- FALLBACK ----------------
+- story: fallback
+  steps:
+    - intent: nlu_fallback
+    - action: utter_fallback

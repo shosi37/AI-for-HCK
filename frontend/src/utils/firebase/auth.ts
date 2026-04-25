@@ -329,7 +329,7 @@ export const signInWithGoogle = async (): Promise<{
     } else if (error.code === 'auth/network-request-failed') {
       throw new Error('Network error. Please check your connection.');
     } else if (error.code === 'auth/unauthorized-domain') {
-      console.error('🔴 UNAUTHORIZED DOMAIN ERROR 🔴');
+      console.error(' UNAUTHORIZED DOMAIN ERROR ');
       console.error('Current Domain:', currentDomain);
       console.error('Current Origin:', currentOrigin);
       console.error('You need to add this domain to Firebase authorized domains');

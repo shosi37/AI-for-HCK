@@ -1,0 +1,10 @@
+[
+  {
+    "text": "how to reach your college",
+    "intent": "ask_location",
+    "intent_prediction": {
+      "name": "ask_hostel_facilities",
+      "confidence": 0.3883110582828522
+    }
+  }
+]

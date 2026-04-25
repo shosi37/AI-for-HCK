@@ -17,3 +17,8 @@ build/
 # OS junk
 .DS_Store
 Thumbs.db
+
+# python / dev
+.venv310/
+__pycache__/
+.vscode/

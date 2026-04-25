@@ -1,0 +1,479 @@
+version: "3.1"
+
+nlu:
+
+# ---------------- GREET ----------------
+- intent: greet
+  examples: |
+    - hi
+    - hello
+    - hey
+    - hey there
+    - good morning
+    - good afternoon
+    - good evening
+    - greetings
+    - hello there
+    - hi bot
+    - hey buddy
+    - hi there
+    - hello bot
+    - hey assistant
+    - hi, how are you?
+    - how are you?
+    - how are you doing?
+    - what's up?
+    - yo
+
+- intent: goodbye
+  examples: |
+    - bye
+    - goodbye
+    - see you
+    - see you later
+    - catch you later
+
+# ---------------- PROGRAMS ----------------
+- intent: ask_programs
+  examples: |
+    - what programs do you offer
+    - what courses are available
+    - what can I study here
+    - tell me about your programs
+    - courses at your college
+    - what subjects do you offer
+    - list of programs
+    - what are the courses
+    - programs available
+    - which degrees can I pursue
+    - do you have business or IT programs
+    - can I study computer science here
+    - do you offer management courses
+    - what are the main streams
+    - what is the difference between your programs
+    - do you have undergraduate and postgraduate options
+# ---------------- LOCATION ----------------
+- intent: ask_location
+  examples: |
+    - where is the college
+    - where are you located
+    - location of the college
+    - college address
+    - where is herald college
+    - location please
+    - where can I find you
+    - how to reach your college
+    - college location
+
+# ---------------- CONTACT ----------------
+- intent: ask_contact
+  examples: |
+    - contact details
+    - how can I contact you
+    - email address
+    - how do I reach you
+    - contact information
+    - how to contact college
+    - give me contact details
+    - college contact
+    - how to get in touch
+
+# ---------------- ADMISSION ----------------
+- intent: ask_admission_requirements
+  examples: |
+    - what are the admission requirements
+    - what do I need to apply
+    - eligibility criteria
+    - admission requirements
+    - requirements for admission
+    - what qualifications are needed
+    - admission criteria
+    - entry requirements
+    - eligibility for admission
+    - do I need specific grades
+    - is there a minimum percentage
+    - do I need English proficiency
+    - are there entrance exams
+    - do I need recommendation letters
+    - what documents are required for admission
+
+- intent: ask_apply_admission
+  examples: |
+    - how can I apply
+    - application process
+    - how do I apply for admission
+    - steps to apply
+    - admission process
+    - how to apply online
+    - application procedure
+    - how to get admission
+    - apply for college
+
+- intent: ask_application_deadline
+  examples: |
+    - application deadline
+    - last date to apply
+    - when do applications close
+    - admission deadline
+    - when is the deadline
+    - application closing date
+    - final date to apply
+    - admission last date
+    - deadline for admission
+    - application due date
+
+- intent: ask_application_fee
+  examples: |
+    - what is the application fee
+    - how much is the application fee
+    - application fee amount
+    - admission fee
+    - cost of application
+    - fee for applying
+    - how much to apply
+    - application cost
+    - entrance fee
+    - fee for admission form
+    - is the application fee refundable
+    - do I need to pay the fee online
+    - can I pay the application fee in cash
+    - is there a late fee for application
+    - do international students pay the same fee
+
+# ---------------- PROGRAM DETAILS ----------------
+- intent: ask_undergraduate_programs
+  examples: |
+    - undergraduate programs
+    - bachelor courses
+    - what undergraduate courses are available
+    - degree programs
+    - what bachelor degrees do you offer
+    - UG courses
+    - undergraduate degrees
+    - courses after +2
+    - study options after high school
+    - bachelor options
+
+- intent: ask_postgraduate_programs
+  examples: |
+    - postgraduate programs
+    - masters programs
+    - do you offer masters
+    - PG courses
+    - graduate programs
+    - masters degree options
+    - postgraduate degrees
+    - higher studies options
+    - advanced programs
+    - postgrad courses
+
+# ---------------- FEES & FINANCE ----------------
+- intent: ask_scholarships
+  examples: |
+    - scholarships available
+    - can I get a scholarship
+    - scholarship options
+    - financial aid
+    - fee support
+    - any scholarship programs
+    - funding options
+    - student financial help
+    - merit scholarships
+    - need based scholarships
+    - how do I apply for a scholarship
+    - what are the criteria for scholarships
+    - do you offer sports scholarships
+    - are there scholarships for international students
+    - can I get a full scholarship
+    - when is the scholarship application deadline
+    - do I need to maintain a certain GPA for scholarships
+
+- intent: ask_tuition_fees_cs
+  examples: |
+    - computer science fees
+    - bsc cs fees
+    - tuition for cs
+    - how much is cs course
+    - cs course cost
+    - fees for computer science
+    - price of cs degree
+    - cs tuition fee
+    - cost of bsc cs
+    - cs program fee
+    - college fees for computer science
+    - what is the fee for computer science
+    - how much do I pay for cs
+    - tell me the tuition for computer science
+    - what is the cost of computer science course
+    - how much is the computer science program
+    - fee structure for cs
+    - cs course fees
+    - total fees for computer science
+    - what is the total cost for cs
+
+- intent: ask_tuition_fees_ibm
+  examples: |
+    - ibm fees
+    - business management fees
+    - tuition for ibm
+    - cost of ibm course
+    - ibm tuition fee
+    - price of business course
+    - business management cost
+    - ibm program fee
+    - fee for ibm
+    - cost of ibm degree
+
+- intent: ask_installment_plans
+  examples: |
+    - installment plans
+    - can I pay in installments
+    - flexible payment options
+    - pay fees in parts
+    - payment plan
+    - fee installment system
+    - split payment option
+    - monthly payment
+    - partial payment allowed
+    - fee flexibility
+
+# ---------------- CAMPUS ----------------
+- intent: ask_cafeteria
+  examples: |
+    - cafeteria
+    - food options
+    - canteen
+    - where can I eat
+    - food available
+    - college cafeteria
+    - meals at college
+    - dining options
+    - food services
+    - campus food
+    - is vegetarian food available
+    - do you serve breakfast and lunch
+    - are there healthy food options
+    - what are the cafeteria timings
+    - is the cafeteria open on weekends
+    - can I bring my own food
+    - is there a coffee shop on campus
+
+- intent: ask_library_hours
+  examples: |
+    - library hours
+    - when is library open
+    - library timing
+    - library schedule
+    - opening time of library
+    - closing time of library
+    - library working hours
+    - library availability
+    - study hours library
+    - when can I use library
+
+- intent: ask_wifi
+  examples: |
+    - wifi
+    - internet access
+    - is wifi available
+    - campus internet
+    - free wifi
+    - wifi in college
+    - internet facility
+    - wireless internet
+    - online access
+    - wifi service
+
+# ---------------- STUDENT LIFE ----------------
+- intent: ask_student_clubs
+  examples: |
+    - student clubs
+    - clubs available
+    - what clubs can I join
+    - club activities
+    - student organizations
+    - join a club
+    - club list
+    - campus clubs
+    - extracurricular clubs
+    - student groups
+
+- intent: ask_extracurricular
+  examples: |
+    - extracurricular activities
+    - activities available
+    - sports and clubs
+    - student activities
+    - fun activities
+    - college activities
+    - extra programs
+    - non academic activities
+    - events and activities
+    - student life activities
+
+- intent: ask_sports_facilities
+  examples: |
+    - sports facilities
+    - games available
+    - sports at college
+    - play sports
+    - sports options
+    - athletic facilities
+    - sports ground
+    - gym or sports
+    - fitness activities
+    - sports equipment
+
+# ---------------- CAREER ----------------
+- intent: ask_internships
+  examples: |
+    - internships
+    - internship opportunities
+    - can I get internship
+    - training opportunities
+    - internship support
+    - practical experience
+    - work experience programs
+    - student internships
+    - industry training
+    - internship help
+
+- intent: ask_job_placement
+  examples: |
+    - job placement
+    - career support
+    - placement help
+    - job opportunities
+    - career services
+    - placement assistance
+    - job support
+    - employment help
+    - graduate jobs
+    - placement program
+
+# --- New Intents and Examples ---
+- intent: ask_hostel_facilities
+  examples: |
+    - do you have hostel facilities
+    - is there a hostel on campus
+    - can I get accommodation
+    - are there student hostels
+    - where can I stay as a student
+    - is hostel available for girls
+    - is hostel available for boys
+    - do you provide student housing
+    - what are the hostel charges
+    - how to apply for hostel
+
+- intent: ask_transport_facilities
+  examples: |
+    - do you provide transport facilities
+    - is there a college bus
+    - how can I commute to college
+    - do you have transportation for students
+    - is there a shuttle service
+    - what are the transport options
+    - can I get a bus pass
+    - is there parking for students
+    - do you have pick and drop service
+    - how do I reach the campus
+
+- intent: ask_placement_statistics
+  examples: |
+    - what is the placement rate
+    - how many students get placed
+    - placement statistics
+    - what companies visit for placement
+    - highest package offered
+    - average salary after graduation
+    - do you have campus placements
+    - which companies recruit from your college
+    - placement record
+    - job placement success rate
+
+- intent: ask_faculty_qualifications
+  examples: |
+    - what are the qualifications of faculty
+    - are your teachers experienced
+    - faculty background
+    - who teaches at the college
+    - do you have PhD faculty
+    - are there guest lecturers
+    - what is the teacher-student ratio
+    - how qualified are the professors
+    - do you have industry experts as faculty
+    - faculty credentials
+
+- intent: ask_student_counseling
+  examples: |
+    - is there student counseling
+    - do you offer counseling services
+    - can I get academic counseling
+    - is career counseling available
+    - how do I book a counseling session
+    - who do I contact for counseling
+    - is there mental health support
+    - can I talk to a counselor
+    - how do I get help with studies
+    - is there support for personal issues
+
+- intent: ask_student_exchange
+  examples: |
+    - are there student exchange programs
+    - can I study abroad
+    - do you have international exchange
+    - how do I join an exchange program
+    - what are the requirements for exchange
+    - is there an exchange with UK universities
+    - can I go on a semester abroad
+    - how do I apply for student exchange
+    - what is the process for exchange programs
+    - do you have partner universities
+
+- intent: ask_recommendation_letter
+  examples: |
+    - how do I get a recommendation letter
+    - can I get a reference letter
+    - who can write my recommendation
+    - what is the process for recommendation letter
+    - do I need a recommendation for jobs
+    - how do I request a recommendation
+    - can my professor give a reference
+    - do you provide recommendation letters
+    - how long does it take to get a recommendation
+    - is there a format for recommendation letter
+
+- intent: ask_online_resources
+  examples: |
+    - how do I access online resources
+    - where can I find e-learning materials
+    - do you have digital library
+    - can I use online journals
+    - is there an online portal
+    - how do I log in to the student portal
+    - are there video lectures available
+    - can I download study materials
+    - is there a mobile app for resources
+    - how do I get help with online learning
+
+- intent: ask_credit_transfer
+  examples: |
+    - what is the process for credit transfer
+    - can I transfer my credits
+    - how do I get my credits evaluated
+    - do you accept transfer credits
+    - what documents are needed for credit transfer
+    - is there a fee for credit transfer
+    - how long does credit transfer take
+    - can I transfer credits from abroad
+    - who approves credit transfer
+    - is credit transfer guaranteed
+
+- intent: nlu_fallback
+  examples: |
+    - blablabla
+    - asdfghjkl
+    - qwertyuiop
+    - random text
+    - gibberish
+    - nonsense

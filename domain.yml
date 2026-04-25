@@ -1,0 +1,255 @@
+version: "3.1"
+
+intents:
+  - ask_programs
+  - ask_intake
+  - ask_location
+  - ask_affiliation
+  - ask_contact
+  - greet
+  - goodbye
+  - ask_application_fee
+  - ask_admission_requirements
+  - ask_apply_admission
+  - ask_undergraduate_programs
+  - ask_postgraduate_programs
+  - ask_application_deadline
+  - ask_scholarships
+  - ask_apply_scholarship
+  - ask_tuition_fees_cs
+  - ask_tuition_fees_ibm
+  - ask_installment_plans
+  - ask_duration_cs
+  - ask_duration_ibm
+  - ask_cafeteria
+  - ask_library_hours
+  - ask_student_id
+  - ask_required_documents
+  - ask_international_students
+  - ask_medium_instruction
+  - ask_entrance_exams
+  - ask_prepare_entrance
+  - ask_contact_number
+  - ask_email_inquiries
+  - ask_location_faq
+  - ask_public_transport
+  - ask_parking
+  - ask_office_hours
+  - ask_principal
+  - ask_affiliation_faq
+  - ask_history
+  - ask_extracurricular
+  - ask_student_clubs
+  - ask_join_club
+  - ask_sports_facilities
+  - ask_gym
+  - ask_internships
+  - ask_job_placement
+  - ask_alumni
+  - ask_exchange_programs
+  - ask_participate_exchange
+  - ask_academic_calendar
+  - ask_classes_start
+  - ask_grading_system
+  - ask_transcripts
+  - ask_recommendation_letter
+  - ask_dress_code
+  - ask_laptops
+  - ask_wifi
+  - ask_online_resources
+  - ask_course_registration
+  - ask_change_course
+  - ask_refund_policy
+  - ask_pay_fees
+  - ask_pay_fees_online
+  - ask_late_fee
+  - ask_financial_aid
+  - ask_student_faculty_ratio
+  - ask_faculty_members
+  - ask_contact_professors
+  - ask_class_size
+  - ask_guest_lectures
+  - ask_seminars_workshops
+  - ask_transfer_credits
+  - ask_transfer_college
+  - ask_credit_transfer
+  - ask_part_time_courses
+  - ask_work_while_studying
+  - ask_attendance_rules
+  - ask_report_absence
+  - ask_medical_leave
+  - ask_academic_counseling
+  - ask_career_counseling
+  - ask_mental_health
+  - ask_emergency_contact
+  - ask_report_harassment
+  - ask_anti_ragging
+  - ask_safety
+  - ask_library_card
+  - ask_borrowing_limit
+  - ask_renew_books
+  - ask_late_returns
+  - ask_ebooks
+  - ask_lost_id
+  - ask_update_contact
+  - ask_bonafide
+  - ask_migration_certificate
+  - ask_revaluation
+  - ask_supplementary_exams
+  - ask_exam_schedule
+  - ask_exam_registration
+  - ask_results
+  - ask_convocation
+  - ask_degree_certificate
+  - ask_duplicate_certificates
+  - ask_transfer_certificate
+  - ask_character_certificate
+  - ask_no_objection
+  - ask_grievance
+  - ask_feedback
+  - ask_student_elections
+  - ask_cultural_events
+  - ask_annual_fest
+  - ask_event_registration
+  - ask_skill_workshops
+  - ask_student_council
+  - chitchat_howareyou
+  - chitchat_thanks
+  - chitchat_bye
+  - chitchat_ask_bot
+  - chitchat_joke
+  - chitchat_weather
+  - chitchat_gratitude
+  - ask_hostel_facilities
+  - ask_transport_facilities
+  - ask_placement_statistics
+  - ask_faculty_qualifications
+
+
+responses:
+  utter_nlu_fallback:
+    - text: "Sorry, I didn't understand. Can you rephrase your question?"
+  utter_chitchat_howareyou:
+    - text: "I'm just a bot, but I'm doing great! How can I help you?"
+  utter_chitchat_thanks:
+    - text: "You're welcome! Let me know if you have more questions."
+  utter_chitchat_bye:
+    - text: "See you later!"
+  utter_chitchat_ask_bot:
+    - text: "I'm a virtual assistant here to answer your questions about the college."
+  utter_chitchat_joke:
+    - text: "Why did the computer go to college? To improve its byte!"
+  utter_chitchat_weather:
+    - text: "I can't check the weather, but I hope it's nice where you are!"
+  utter_chitchat_gratitude:
+    - text: "Thank you! I'm always here to help."
+  utter_greet:
+    - text: "Hello! How can I help you with your college inquiries?"
+
+  utter_goodbye:
+    - text: "Goodbye! If you have more questions, feel free to ask."
+
+  utter_ask_programs:
+    - text: "We offer BSc (Hons) Computer Science and BBA (Hons) International Business Management. Both are full-time undergraduate programs. If you need details about each, just ask!"
+
+  utter_ask_intake:
+    - text: "Intakes are in February and September."
+
+  utter_ask_location:
+    - text: "The college is located in Naxal, Kathmandu."
+
+  utter_ask_affiliation:
+    - text: "The college is affiliated with the University of Wolverhampton, UK."
+
+  utter_ask_contact:
+    - text: "You can contact via email: info@heraldcollege.edu.np"
+
+  utter_ask_application_fee:
+    - text: "The application fee is NPR 1,000. It is non-refundable and can be paid online or in person at the admissions office. International students pay the same fee."
+
+  utter_ask_admission_requirements:
+    - text: "Admission requirements include completion of higher secondary education (+2/A-levels) or equivalent, with a minimum of 45%. English proficiency is required. Please check our website or contact admissions for details."
+
+  utter_ask_apply_admission:
+    - text: "You can apply online through our website or visit the admissions office for assistance."
+
+  utter_ask_undergraduate_programs:
+    - text: "We offer BSc (Hons) Computer Science and BBA (Hons) International Business Management."
+
+  utter_ask_postgraduate_programs:
+    - text: "Currently, we do not offer postgraduate programs. Please check back for updates."
+
+  utter_ask_application_deadline:
+    - text: "The application deadline is typically a few weeks before the semester starts. Please check our website for the latest dates."
+
+  utter_ask_scholarships:
+    - text: "We offer merit-based and need-based scholarships, as well as sports scholarships. Criteria include academic performance and extracurricular achievements. Visit our scholarships page for eligibility and application details."
+
+  utter_ask_tuition_fees_cs:
+    - text: "The tuition fee for BSc (Hons) Computer Science is NPR 7,50,000 for the full program."
+
+  utter_ask_tuition_fees_ibm:
+    - text: "The tuition fee for BBA (Hons) International Business Management is NPR 7,50,000 for the full program."
+
+  utter_ask_installment_plans:
+    - text: "Yes, we offer installment plans for tuition fees. Please contact the accounts office for details."
+
+  utter_ask_cafeteria:
+    - text: "Yes, there is a cafeteria on campus offering vegetarian and non-vegetarian meals, snacks, and beverages. The cafeteria is open from 8:00 AM to 6:00 PM on weekdays."
+
+  utter_ask_library_hours:
+    - text: "The library is open from 8:00 AM to 6:00 PM on weekdays."
+
+  utter_ask_wifi:
+    - text: "Wi-Fi is available throughout the campus for all students."
+
+  utter_ask_student_clubs:
+    - text: "We have several student clubs including IT Club, Business Club, and more."
+
+  utter_ask_extracurricular:
+    - text: "Extracurricular activities include sports, cultural events, workshops, and seminars."
+
+  utter_ask_sports_facilities:
+    - text: "Sports facilities include a basketball court, table tennis, and indoor games."
+
+  utter_ask_internships:
+    - text: "We provide internship support and guidance to all eligible students."
+
+  utter_ask_job_placement:
+    - text: "Our career services help students with job placement and career counseling."
+
+  utter_ask_hostel_facilities:
+    - text: "Currently, Herald College Kathmandu does not offer hostel or on-campus accommodation. We can provide information about nearby private hostels if needed."
+
+  utter_ask_transport_facilities:
+    - text: "We do not have a dedicated college bus, but the campus is easily accessible by public transport. Parking is available for students with vehicles."
+
+  utter_ask_placement_statistics:
+    - text: "Our placement rate is over 85%. Top recruiters include leading IT and business firms. The highest package offered last year was NPR 1,200,000 per annum."
+
+  utter_ask_faculty_qualifications:
+    - text: "Our faculty includes PhD holders, industry experts, and experienced professors. The student-faculty ratio is 15:1, ensuring personalized attention."
+
+  utter_ask_student_counseling:
+    - text: "Yes, academic, career, and mental health counseling are available. Book an appointment through the academic or student affairs office."
+
+  utter_ask_student_exchange:
+    - text: "We offer student exchange programs with partner universities. Contact the international office for eligibility and application details."
+
+  utter_ask_recommendation_letter:
+    - text: "Contact your faculty advisor or the administration office to request a recommendation letter. Allow at least one week for processing."
+
+  utter_ask_online_resources:
+    - text: "Online learning resources are available through the college portal and digital library. Log in with your student credentials."
+
+  utter_ask_credit_transfer:
+    - text: "Submit your transcripts and course details to the academic office for credit transfer evaluation. Processing time may vary."
+
+  utter_fallback:
+    - text: "I'm sorry, I didn't understand that. Could you please rephrase or ask something else?"
+
+actions: []
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

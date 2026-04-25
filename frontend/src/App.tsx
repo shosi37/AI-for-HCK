@@ -35,7 +35,7 @@ function App() {
         // Dynamic check for new tab launch via session marker
         // If activeSession is MISSING, we dictate that this is a "Launch".
         // During launch, we do NOT allow auto-login.
-        const isActiveSession = localStorage.getItem('activeSession');
+        const isActiveSession = sessionStorage.getItem('activeSession');
 
         if (!isActiveSession) {
           // This is a new tab / launch scenario.
@@ -55,7 +55,7 @@ function App() {
             // User is null. This is the clean state we want on launch.
             // Now we can Mark session as active.
             console.log('Launch detected with clean state. Activating session.');
-            localStorage.setItem('activeSession', 'true');
+            sessionStorage.setItem('activeSession', 'true');
             setUser(null);
             setIsLoading(false);
             return;
@@ -179,6 +179,34 @@ function App() {
     };
   }, []);
 
+  const refreshUser = async () => {
+    if (!auth.currentUser) return;
+    try {
+      const firebaseUser = auth.currentUser;
+      const userProfile = await getCurrentUserProfile(firebaseUser);
+      if (userProfile) {
+        setUser(userProfile);
+      }
+
+      const idToken = await firebaseUser.getIdToken(true); // Force refresh
+      const backendUrl = 'http://localhost:4000/api/login-token';
+      const res = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        lastValidToken.current = data.token;
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('backendUser', JSON.stringify(data.user));
+        setUser(prev => ({ ...prev, ...data.user }));
+      }
+    } catch (e) {
+      console.error('Manual refresh failed', e);
+    }
+  };
+
   const handleLogin = (userData: User) => {
     setUser(userData);
     setIsAdmin(checkIsAdmin(userData.email));
@@ -249,7 +277,7 @@ function App() {
             path="/dashboard"
             element={
               user ? (
-                <Dashboard user={user} onLogout={handleLogout} />
+                <Dashboard user={user} onLogout={handleLogout} onRefresh={refreshUser} />
               ) : (
                 <Navigate to="/login" />
               )

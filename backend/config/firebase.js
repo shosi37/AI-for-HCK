@@ -27,7 +27,7 @@ try {
         credential: admin.credential.cert(serviceAccount),
     });
 
-    console.log('🔥 Firebase Admin Initialized');
+    console.log('Firebase Admin Initialized');
 } catch (error) {
     console.error('Failed to initialize Firebase Admin:', error.message);
     throw error;

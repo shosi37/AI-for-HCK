@@ -204,29 +204,31 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
     setIsLoading(true);
 
     try {
-      // Prepare messages for OpenAI
-      const apiMessages = chatWithUserMessage.messages.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.text,
-      }));
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/chat`, {
+      // Send message to Rasa REST API
+      const rasaResponse = await fetch('http://127.0.0.1:5006/webhooks/rest/webhook?token=mysecret123', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({
+          sender: user.id,
+          message: inputMessage,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
+      if (!rasaResponse.ok) {
+        throw new Error('Failed to get response from Rasa');
       }
 
-      const data = await response.json();
+      const rasaData = await rasaResponse.json();
+      let botReply = 'Sorry, I did not understand that.';
+      if (Array.isArray(rasaData) && rasaData.length > 0 && rasaData[0].text) {
+        botReply = rasaData.map((r: any) => r.text).join('\n');
+      }
 
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.message.content,
+        text: botReply,
         sender: 'ai',
         timestamp: new Date(),
         helpful: null,
@@ -242,7 +244,7 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
       await updateChat(user.id, finalChat);
     } catch (error) {
       console.error('Chat Error:', error);
-      showErrorToast('Chat Error', 'Failed to get AI response. Please try again.');
+      showErrorToast('Chat Error', 'Failed to get response from Rasa. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -12,9 +12,10 @@ import AnimatedBackground from '../components/common/AnimatedBackground';
 interface DashboardProps {
   user: User;
   onLogout: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
-export default function Dashboard({ user, onLogout }: DashboardProps) {
+export default function Dashboard({ user, onLogout, onRefresh }: DashboardProps) {
   const navigate = useNavigate();
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -35,8 +36,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
     setCurrentUser(updatedUser);
   };
 
-  const handleEmailVerified = () => {
+  const handleEmailVerified = async () => {
+    // Optimistic UI update
     setCurrentUser({ ...currentUser, isVerified: true });
+    // Trigger full session refresh to get new JWT with isVerified: true
+    if (onRefresh) await onRefresh();
   };
 
   const getInitials = (name: string) => {

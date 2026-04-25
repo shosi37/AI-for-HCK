@@ -16,10 +16,10 @@ const transporter = nodemailer.createTransport({
 // Verify connection configuration
 if (EMAIL_USER && EMAIL_PASS) {
     transporter.verify()
-        .then(() => console.log('✅ Email transporter verified'))
-        .catch((err) => console.warn('⚠️ Email transporter verification failed:', err && err.message));
+        .then(() => console.log('Email transporter verified'))
+        .catch((err) => console.warn('Email transporter verification failed:', err && err.message));
 } else {
-    console.log('⚠️ EMAIL_USER or EMAIL_PASS not set —/api/otp/send will log to console');
+    console.log('EMAIL_USER or EMAIL_PASS not set —/api/otp/send will log to console');
 }
 
 module.exports = {

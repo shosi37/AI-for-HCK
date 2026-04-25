@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Inquiry Chatbot</title>
+
+  <style>
+    body {
+      background: #f4f6fb;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 400px;
+      height: 600px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: #2d6cdf;
+      color: white;
+      padding: 16px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      padding: 10px 14px;
+      border-radius: 16px;
+      max-width: 75%;
+      font-size: 14px;
+    }
+
+    .user {
+      background: #d1e7ff;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background: #f1f1f1;
+      align-self: flex-start;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    .chat-input button {
+      margin-left: 10px;
+      padding: 10px 16px;
+      background: #2d6cdf;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .chat-input button:hover {
+      background: #1b4fa0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">College Inquiry Chatbot</div>
+
+  <div class="chat-messages" id="chat-messages">
+    <div class="message bot">Hello! How can I help you with your college inquiries?</div>
+  </div>
+
+  <form class="chat-input" id="chat-form">
+    <input type="text" id="user-input" placeholder="Type your message..." required />
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chat-messages');
+const chatForm = document.getElementById('chat-form');
+const userInput = document.getElementById('user-input');
+
+function appendMessage(text, sender) {
+  const msg = document.createElement('div');
+  msg.className = 'message ' + sender;
+  msg.innerText = text;
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendMessage(message) {
+  appendMessage(message, 'user');
+  userInput.value = '';
+
+  try {
+    const res = await fetch(
+      "http://127.0.0.1:5006/webhooks/rest/webhook?token=mysecret123",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          sender: "user",
+          message: message
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (Array.isArray(data) && data.length > 0) {
+      data.forEach(r => {
+        if (r.text) appendMessage(r.text, "bot");
+      });
+    } else {
+      appendMessage("Sorry, I didn't understand that.", "bot");
+    }
+
+  } catch (error) {
+    appendMessage("Error connecting to the bot server.", "bot");
+    console.error(error);
+  }
+}
+
+chatForm.addEventListener("submit", function(e) {
+  e.preventDefault();
+  const message = userInput.value.trim();
+  if (message) sendMessage(message);
+});
+
+userInput.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    chatForm.dispatchEvent(new Event("submit"));
+  }
+});
+</script>
+
+</body>
+</html>

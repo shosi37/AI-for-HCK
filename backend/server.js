@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ override: true });
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -16,6 +16,7 @@ const axios = require('axios'); // For AbstractAPI proxy if needed here, or move
 const authRoutes = require('./routes/auth');
 const otpRoutes = require('./routes/otp');
 const oauthRoutes = require('./routes/oauth');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -117,11 +118,11 @@ if (process.env.NODE_ENV !== 'production') {
 /* ---------------- Start ---------------- */
 const startServer = (port = PORT, attempts = 5) => {
   const p = Number(port);
-  const server = app.listen(p, () => console.log(`✅ Backend running on http://localhost:${p}`));
+  const server = app.listen(p, () => console.log(`Backend running on http://localhost:${p}`));
 
   server.on('error', (err) => {
     if (err && err.code === 'EADDRINUSE') {
-      console.error(`⚠️ Port ${p} is in use.`);
+      console.error(` Port ${p} is in use.`);
       if (attempts > 0) {
         const nextPort = p + 1;
         console.log(`Trying port ${nextPort}...`);
