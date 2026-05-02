@@ -86,23 +86,32 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
 
   // Load chats from Firebase in real-time
   useEffect(() => {
-    if (!user?.id) {
-      return;
-    }
+    if (!user?.id) return;
 
     const unsubscribe = subscribeToUserChats(user.id, (loadedChats) => {
       setChats(loadedChats);
-      // Update current chat if it exists
-      if (currentChat) {
-        const updated = loadedChats.find(c => c.id === currentChat.id);
-        if (updated) {
-          setCurrentChat(updated);
-        }
-      }
     });
 
     return () => unsubscribe();
   }, [user?.id]);
+
+  // Sync current chat with the loaded chats list to reflect database updates
+  useEffect(() => {
+    if (currentChat && chats.length > 0) {
+      const updated = chats.find(c => c.id === currentChat.id);
+      if (updated && JSON.stringify(updated.messages) !== JSON.stringify(currentChat.messages) || updated?.title !== currentChat.title) {
+        // Only update if there's a meaningful change to avoid infinite loops
+        setCurrentChat(prev => {
+          if (!prev || prev.id !== updated.id) return prev;
+          // Preserve local title if we just updated it
+          return {
+            ...updated,
+            title: updated.title === 'New conversation' && prev.title !== 'New conversation' ? prev.title : updated.title
+          };
+        });
+      }
+    }
+  }, [chats]);
 
   // Load FAQs from Firebase in real-time
   useEffect(() => {
@@ -192,15 +201,17 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
 
     // Smart Title Generation (ChatGPT style)
     let newTitle = currentChat.title;
-    if (currentChat.messages.length <= 1 || currentChat.title === 'New conversation') {
+    const isNewChat = currentChat.title === 'New conversation' || currentChat.messages.length <= 1;
+    
+    if (isNewChat) {
       // Pick first 4-5 words or first 30 chars for a cleaner title
-      const words = inputMessage.split(' ');
+      const words = inputMessage.trim().split(/\s+/);
       newTitle = words.length > 5 
         ? words.slice(0, 5).join(' ') + '...' 
         : inputMessage.slice(0, 30);
       
-      // Capitalize first letter
-      newTitle = newTitle.charAt(0).toUpperCase() + newTitle.slice(1);
+      // Capitalize first letter and clean up
+      newTitle = newTitle.trim().charAt(0).toUpperCase() + newTitle.trim().slice(1);
     }
 
     // Update local state first for immediate feedback
@@ -214,6 +225,9 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
     setCurrentChat(chatWithUserMessage);
     setInputMessage('');
     setIsLoading(true);
+
+    // Save title/message to Firebase immediately so sidebar updates instantly
+    await updateChat(user.id, chatWithUserMessage);
 
     try {
       // Send message to Rasa REST API

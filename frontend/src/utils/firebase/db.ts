@@ -124,6 +124,7 @@ export const updateChat = async (userId: string, chat: Chat): Promise<void> => {
   try {
     const chatRef = doc(db, 'users', userId, 'chats', chat.id);
     await updateDoc(chatRef, {
+      title: chat.title,
       messages: chat.messages.map(msg => ({
         ...msg,
         timestamp: Timestamp.fromDate(msg.timestamp),
