@@ -1,10 +1,50 @@
 [
   {
-    "text": "how to reach your college",
-    "intent": "ask_location",
+    "text": "blablabla",
+    "intent": "nlu_fallback",
     "intent_prediction": {
-      "name": "ask_hostel_facilities",
-      "confidence": 0.3883110582828522
+      "name": "ask_job_placement",
+      "confidence": 0.01544125284999609
+    }
+  },
+  {
+    "text": "asdfghjkl",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_tuition_fees_ibm",
+      "confidence": 0.011680797673761845
+    }
+  },
+  {
+    "text": "qwertyuiop",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_job_placement",
+      "confidence": 0.018181147053837776
+    }
+  },
+  {
+    "text": "random text",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_tuition_fees_ibm",
+      "confidence": 0.006545324809849262
+    }
+  },
+  {
+    "text": "gibberish",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_tuition_fees_ibm",
+      "confidence": 0.01176073681563139
+    }
+  },
+  {
+    "text": "nonsense",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_job_placement",
+      "confidence": 0.012163219042122364
     }
   }
 ]

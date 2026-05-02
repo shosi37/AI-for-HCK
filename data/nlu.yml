@@ -9,16 +9,63 @@ nlu:
     - hello
     - hey
     - hey there
+    - hello there
+    - hi there
+    - hey bot
+    - hi bot
+    - hello bot
+    - hey assistant
+    - hi assistant
     - good morning
     - good afternoon
     - good evening
     - greetings
-    - hello there
-    - hi bot
+    - what's up
+    - yo
+    - hey dude
+    - hello friend
+    - hi buddy
     - hey buddy
-    - hi there
-    - hello bot
+    - hi hello
+    - hello again
+    - hey again
+    - hi hi
+    - hello hello
+    - good day
+    - hey bro
+    - hi bro
+    - hello bro
+    - hey man
+    - hi man
+    - hello man
+    - what's going on
+    - howdy
+    - hiya
+    - sup
+    - hey what's up
+    - hello what's up
+    - hi what's up
+    - greetings bot
+    - hey chatbot
+    - hi chatbot
+    - hello chatbot
+    - good morning bot
+    - good evening bot
+    - hi dear
+    - hello dear
+    - hey dear
+    - hi there bot
+    - hello there bot
+    - hey there bot
+    - hi assistant
+    - hello assistant
     - hey assistant
+    - hi system
+    - hello system
+    - hey system
+    - hi again
+    - hello again friend
+    - hey again buddy
 
 - intent: goodbye
   examples: |
@@ -41,12 +88,34 @@ nlu:
     - what are the courses
     - programs available
     - which degrees can I pursue
-    - do you have business or IT programs
-    - can I study computer science here
-    - do you offer management courses
-    - what are the main streams
-    - what is the difference between your programs
-    - do you have undergraduate and postgraduate options
+    - do you offer IT courses
+    - do you offer business courses
+    - what degrees are there
+    - what can I major in
+    - available degrees
+    - available subjects
+    - study programs list
+    - all courses list
+    - tell me all programs
+    - show me programs
+    - what fields can I study
+    - do you have computer science
+    - do you have management courses
+    - is there an IT program
+    - is there a business program
+    - what are the main courses
+    - what streams are offered
+    - which course should I choose
+    - suggest me courses
+    - what degrees do you provide
+    - give me course options
+    - list all available courses
+    - what programs can I enroll in
+    - what subjects are taught
+    - what majors do you offer
+    - what bachelor programs are there
+    - what undergraduate programs exist
+    - what study options are available
 # ---------------- LOCATION ----------------
 - intent: ask_location
   examples: |
@@ -80,17 +149,31 @@ nlu:
     - what do I need to apply
     - eligibility criteria
     - admission requirements
-    - requirements for admission
-    - what qualifications are needed
-    - admission criteria
     - entry requirements
-    - eligibility for admission
     - do I need specific grades
-    - is there a minimum percentage
-    - do I need English proficiency
-    - are there entrance exams
-    - do I need recommendation letters
-    - what documents are required for admission
+    - minimum percentage required
+    - do I need IELTS
+    - is english test required
+    - what documents do I need
+    - requirements for admission
+    - criteria for admission
+    - qualifications needed
+    - academic requirements
+    - admission eligibility
+    - who can apply
+    - am I eligible
+    - required marks
+    - required documents
+    - admission rules
+    - what is needed for admission
+    - how to qualify for admission
+    - eligibility for college
+    - what grades are needed
+    - do I need transcripts
+    - do I need certificates
+    - is entrance exam required
+    - do I need interview
+    - admission conditions
 
 - intent: ask_apply_admission
   examples: |
