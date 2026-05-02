@@ -190,11 +190,24 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
       timestamp: new Date(),
     };
 
+    // Smart Title Generation (ChatGPT style)
+    let newTitle = currentChat.title;
+    if (currentChat.messages.length <= 1 || currentChat.title === 'New conversation') {
+      // Pick first 4-5 words or first 30 chars for a cleaner title
+      const words = inputMessage.split(' ');
+      newTitle = words.length > 5 
+        ? words.slice(0, 5).join(' ') + '...' 
+        : inputMessage.slice(0, 30);
+      
+      // Capitalize first letter
+      newTitle = newTitle.charAt(0).toUpperCase() + newTitle.slice(1);
+    }
+
     // Update local state first for immediate feedback
     const chatWithUserMessage: Chat = {
       ...currentChat,
       messages: [...currentChat.messages, userMessage],
-      title: currentChat.messages.length === 1 ? inputMessage.slice(0, 50) : currentChat.title,
+      title: newTitle,
       timestamp: new Date(),
     };
 
@@ -282,30 +295,31 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
       {/* Sidebar */}
       <div
         className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } fixed md:relative md:translate-x-0 z-40 w-64 glass h-full transition-transform duration-300 ease-in-out flex flex-col border-r border-gray-200 dark:border-white/10`}
+          } fixed md:relative md:translate-x-0 z-40 w-72 glass h-full transition-transform duration-300 ease-in-out flex flex-col border-r border-gray-200 dark:border-white/10`}
       >
-        {/* New Chat Button */}
-        <div className="p-4 border-b border-gray-200 dark:border-white/10">
+        {/* New Chat Button Area */}
+        <div className="p-4 space-y-2 border-b border-gray-200 dark:border-white/10">
           <button
             onClick={createNewChat}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors mb-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span>New Chat</span>
+            <span className="font-bold text-sm">New Chat</span>
           </button>
           <button
             onClick={() => navigate('/library')}
-            className="w-full bg-white/5 hover:bg-white/10 text-gray-900 dark:text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors border border-gray-200 dark:border-white/10"
+            className="w-full bg-white/5 hover:bg-white/10 text-gray-900 dark:text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors border border-gray-200 dark:border-white/10 text-sm font-medium"
           >
             <Book className="w-4 h-4 text-indigo-500" />
             <span>Digital Library</span>
           </button>
         </div>
 
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Unified Scrollable Sidebar Content */}
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          {/* Chat History Section */}
           <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 px-2">
               <h3 className="text-gray-900 dark:text-white/90">Chat History</h3>
               {chats.length > 0 && (
                 <button
@@ -316,43 +330,50 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
                 </button>
               )}
             </div>
-            <div className="space-y-2">
-              {chats.map(chat => (
-                <div
-                  key={chat.id}
-                  className={`group relative px-3 py-2 rounded-lg cursor-pointer transition-colors ${currentChat?.id === chat.id
-                    ? 'bg-indigo-50 dark:bg-white/10 text-indigo-700 dark:text-white'
-                    : 'text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                  onClick={() => setCurrentChat(chat)}
-                >
-                  <div className="flex items-start gap-2">
-                    <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{chat.title}</p>
-                      <p className="text-xs text-gray-500 dark:text-white/40">
-                        {new Date(chat.timestamp).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteChat(chat.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-500/20 rounded transition-opacity"
-                    >
-                      <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
-                    </button>
-                  </div>
+            <div className="space-y-1 max-h-[45vh] overflow-y-auto custom-scrollbar pr-1">
+              {chats.length === 0 ? (
+                <div className="text-center py-8 opacity-40">
+                  <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                  <p className="text-sm">No chats yet</p>
                 </div>
-              ))}
+              ) : (
+                chats.map(chat => (
+                  <div
+                    key={chat.id}
+                    className={`group relative px-3 py-2 rounded-lg cursor-pointer transition-colors ${currentChat?.id === chat.id
+                      ? 'bg-indigo-50 dark:bg-white/10 text-indigo-700 dark:text-white'
+                      : 'text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    onClick={() => setCurrentChat(chat)}
+                  >
+                    <div className="flex items-start gap-2">
+                      <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate">{chat.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-white/40">
+                          {new Date(chat.timestamp).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteChat(chat.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-500/20 rounded transition-opacity"
+                      >
+                        <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
-          {/* Suggestions */}
-          <div className="p-4 border-t border-gray-200 dark:border-white/10">
+          {/* Suggestions Section */}
+          <div className="p-4 border-t border-gray-200 dark:border-white/10 mt-auto">
             <h3 className="text-gray-900 dark:text-white/90 mb-3">Suggestions</h3>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {suggestions.map((suggestion, idx) => (
                 <button
                   key={idx}
@@ -365,11 +386,11 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
             </div>
           </div>
 
-          {/* FAQ */}
+          {/* FAQ Section */}
           <div className="p-4 border-t border-gray-200 dark:border-white/10">
             <h3 className="text-gray-900 dark:text-white/90 mb-3">FAQ</h3>
-            <div className="space-y-2">
-              {faqs.map((faq, idx) => (
+            <div className="space-y-1">
+              {faqs.slice(0, 5).map((faq, idx) => (
                 <button
                   key={idx}
                   onClick={() => setInputMessage(faq.question)}
@@ -382,22 +403,21 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
           </div>
         </div>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+        {/* User Profile Area */}
+        <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white/5">
           <div className="relative">
-            {/* Profile Button */}
             <button
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="w-full flex items-center gap-3 px-3 py-3 text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-all group"
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-sm">{getInitials(currentUser.name)}</span>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
+                <span className="text-white text-sm font-bold">{getInitials(currentUser.name)}</span>
               </div>
               <div className="flex-1 text-left min-w-0">
-                <div className="text-sm truncate">{currentUser.name}</div>
-                <div className="text-xs text-gray-500 dark:text-white/40 truncate">{currentUser.email}</div>
+                <div className="text-sm font-bold text-gray-900 dark:text-white truncate">{currentUser.name}</div>
+                <div className="text-xs text-gray-500 dark:text-white/30 truncate uppercase tracking-tighter">{currentUser.studentId || 'Student'}</div>
               </div>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Menu */}
