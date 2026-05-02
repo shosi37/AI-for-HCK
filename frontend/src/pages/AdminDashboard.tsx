@@ -34,6 +34,7 @@ import {
 } from '../utils/firebase/db';
 import type { User } from '../types';
 import FirebaseSetupGuide from '../components/modals/FirebaseSetupGuide';
+import ConfirmModal from '../components/modals/ConfirmModal';
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 import { notify, showErrorToast, showSuccessToast } from '../utils/notifications';
@@ -81,6 +82,21 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isLoadingFAQs, setIsLoadingFAQs] = useState(false);
 
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant: 'danger' | 'warning' | 'info';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+    variant: 'danger',
+  });
+
   useEffect(() => {
     // Subscribe to real-time users updates
     const unsubscribeUsers = subscribeToAllUsers((updatedUsers) => {
@@ -118,7 +134,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       setUsers(loadedUsers);
     } catch (error) {
       console.error('Error loading users:', error);
-      alert('Failed to load users');
+      showErrorToast('Data Sync Failed', 'System was unable to retrieve user records from the cloud.');
     } finally {
       setIsLoadingUsers(false);
     }
@@ -131,7 +147,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       setFAQs(loadedFAQs);
     } catch (error) {
       console.error('Error loading FAQs:', error);
-      alert('Failed to load FAQs');
+      showErrorToast('Data Sync Failed', 'The knowledge base could not be synchronized at this time.');
     } finally {
       setIsLoadingFAQs(false);
     }
@@ -139,7 +155,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const handleAddFAQ = async () => {
     if (!currentFAQ.question || !currentFAQ.answer) {
-      alert('Please fill in both question and answer');
+      showErrorToast('Missing Data', 'Please provide both a question and an answer for the FAQ entry.');
       return;
     }
     try {
@@ -173,18 +189,24 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   const handleRemoveFAQ = async (faqId: string) => {
-    if (confirm('Are you sure you want to delete this FAQ?')) {
-      try {
-        await deleteFAQ(faqId);
-        if (currentFAQ.id === faqId) {
-          setCurrentFAQ({ id: '', question: '', answer: '' });
+    setConfirmModal({
+      isOpen: true,
+      title: 'Purge FAQ Entry',
+      message: 'Are you sure you want to remove this FAQ from the system knowledge base? This action cannot be undone.',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteFAQ(faqId);
+          if (currentFAQ.id === faqId) {
+            setCurrentFAQ({ id: '', question: '', answer: '' });
+          }
+          showSuccessToast('Entry Deleted', 'System entry removed successfully.');
+        } catch (error) {
+          console.error('Error deleting FAQ:', error);
+          showErrorToast('Deletion Failed', 'System was unable to purge the specified FAQ entry.');
         }
-        showSuccessToast('Entry Deleted', 'System entry removed successfully.');
-      } catch (error) {
-        console.error('Error deleting FAQ:', error);
-        showErrorToast('Deletion Failed', 'System was unable to purge the specified FAQ entry.');
       }
-    }
+    });
   };
 
   const handleExportFAQsJSON = () => {
@@ -261,19 +283,25 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   }, [activeTab, selectedUser]);
 
   const handleDeleteUser = async (userId: string) => {
-    if (confirm('Are you sure you want to delete this user? This will also delete all their chats.')) {
-      try {
-        await deleteFirebaseUser(userId);
-        if (selectedUser?.id === userId) {
-          setSelectedUser(null);
-          setUserChats([]);
+    setConfirmModal({
+      isOpen: true,
+      title: 'Permanent User Purge',
+      message: 'This operation will permanently delete the user account and all associated conversation history. This action is irreversible. Proceed?',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteFirebaseUser(userId);
+          if (selectedUser?.id === userId) {
+            setSelectedUser(null);
+            setUserChats([]);
+          }
+          showSuccessToast('User Purged', 'The account and all associated data have been permanently removed.');
+        } catch (error) {
+          console.error('Error deleting user:', error);
+          showErrorToast('Deletion Failed', 'System was unable to purge the user account. Please try again.');
         }
-        alert('User deleted successfully');
-      } catch (error) {
-        console.error('Error deleting user:', error);
-        alert('Failed to delete user');
       }
-    }
+    });
   };
 
   const [stats, setStats] = useState({
@@ -411,7 +439,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 onClick={() => {
                   loadUsers();
                   loadFAQs();
-                  alert('Data refreshed successfully');
+                  showSuccessToast('Records Refreshed', 'The dashboard data has been successfully updated.');
                 }}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
@@ -603,7 +631,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       onClick={() => {
                         loadUsers();
                         loadFAQs();
-                        alert('Data refreshed');
+                        showSuccessToast('Data Refresh', 'Latest system records have been retrieved.');
                       }}
                       className="px-4 py-2 bg-white/10 hover:bg-white/20 text-gray-900 dark:text-white rounded-lg transition-colors flex items-center gap-2"
                     >
@@ -985,6 +1013,15 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+      />
     </div>
   );
 }

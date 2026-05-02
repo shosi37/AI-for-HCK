@@ -2,6 +2,7 @@
       "name": "AI Chatbot Interface Design",
       "version": "0.1.0",
       "private": true,
+      "proxy": "http://localhost:4000",
       "dependencies": {
             "@jsr/supabase__supabase-js": "^2.49.8",
             "@radix-ui/react-accordion": "^1.2.3",

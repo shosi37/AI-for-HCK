@@ -8,6 +8,8 @@ import {
 import { notify } from "../utils/notifications";
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedBackground from '../components/common/AnimatedBackground';
+import { signInWithCustomToken } from "firebase/auth";
+import { auth } from "../utils/firebase/config";
 
 interface AdminLoginProps {
   onAdminLogin: () => void;
@@ -20,15 +22,35 @@ export default function AdminLogin({
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        // Store token (localStorage or cookie as needed)
+        localStorage.setItem("admin_token", data.token);
 
-    if (username === "admin" && password === "admin") {
-      onAdminLogin();
-      notify.admin.loginSuccess();
-      navigate("/admin/dashboard");
-    } else {
-      notify.login.error("Invalid admin credentials. Please try again or contact the principal!");
+        if (data.firebaseToken) {
+          try {
+            await signInWithCustomToken(auth, data.firebaseToken);
+          } catch (e) {
+            console.error("Firebase custom token auth failed:", e);
+          }
+        }
+
+        onAdminLogin && onAdminLogin();
+        notify.admin?.loginSuccess?.();
+        navigate("/admin/dashboard");
+      } else {
+        notify.login?.error?.(data.error || "Invalid admin credentials. Please try again or contact the principal!");
+      }
+    } catch (err) {
+      notify.login?.error?.("Network error. Please try again later.");
     }
   };
 

@@ -15,31 +15,29 @@ You're seeing a "Missing or insufficient permissions" error because Firestore se
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (request.auth.token.email == 'admin@hck.edu' || request.auth.token.admin == true);
+    }
+
     // Allow users to read and write their own data
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
       
-      // Allow users to read and write their own chats
+      // Admin can manage users
+      allow read, write: if isAdmin();
+      
+      // Chats subcollection
       match /chats/{chatId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       }
     }
     
-    // Allow everyone to read FAQs
+    // FAQs
     match /faqs/{faqId} {
       allow read: if true;
-      // Only authenticated admin can write FAQs
-      allow write: if request.auth != null && request.auth.token.email == 'admin@hck.edu';
-    }
-    
-    // Admin can read all users and chats
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.token.email == 'admin@hck.edu';
-      
-      match /chats/{chatId} {
-        allow read: if request.auth != null && request.auth.token.email == 'admin@hck.edu';
-      }
+      allow write: if isAdmin();
     }
   }
 }

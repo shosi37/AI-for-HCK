@@ -17,6 +17,7 @@ const authRoutes = require('./routes/auth');
 const otpRoutes = require('./routes/otp');
 const oauthRoutes = require('./routes/oauth');
 const chatRoutes = require('./routes/chat');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -58,6 +59,7 @@ app.use(cookieParser());
 app.use('/api/otp', otpRoutes);
 app.use('/api/oauth', oauthRoutes); // This handles /api/oauth/google...
 app.use('/api', authRoutes); // This handles /api/login, /api/profile etc.
+app.use('/api/admin', adminRoutes); // Admin-specific routes: POST /api/admin/login
 
 // Root check
 app.get('/api', (_, res) => res.json({ ok: true }));
