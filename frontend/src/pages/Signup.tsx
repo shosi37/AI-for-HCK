@@ -236,22 +236,24 @@ export default function Signup({ onSignup }: SignupProps) {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-4">
       {/* Animated Background */}
       <AnimatedBackground />
+
+      {/* Back Button */}
+      <button
+        onClick={() => navigate("/")}
+        className="fixed top-8 left-8 z-20 flex items-center gap-2 text-gray-700 dark:text-white/80 hover:text-indigo-600 dark:hover:text-white transition-all group"
+      >
+        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        <span className="font-medium text-lg">Back</span>
+      </button>
 
       <div className="w-full max-w-md relative z-10">
         {/* Card */}
         <div className="glass rounded-3xl p-8 shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <button
-              onClick={() => navigate(-1)}
-              className="text-gray-600 dark:text-white/80 hover:text-gray-900 dark:hover:text-white flex items-center gap-2 text-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </button>
+          <div className="flex items-center justify-end mb-8">
             <ThemeToggle />
           </div>
 

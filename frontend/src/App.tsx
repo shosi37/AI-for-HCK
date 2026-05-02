@@ -14,6 +14,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import Library from './pages/Library';
+import LandingPage from './pages/LandingPage';
 import { Toaster } from 'sonner';
 import { notify, showErrorToast } from './utils/notifications';
 import { User } from './types';
@@ -339,7 +340,8 @@ function App() {
             }
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>
     </ThemeProvider>
