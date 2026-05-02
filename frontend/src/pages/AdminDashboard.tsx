@@ -262,7 +262,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const loadUserChats = async (userId: string) => {
     try {
       const chats = await getUserChats(userId);
-      setUserChats(chats);
+      // Sort chats by timestamp descending (newest first)
+      const sortedChats = [...chats].sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      setUserChats(sortedChats);
     } catch (error) {
       console.error('Error loading user chats:', error);
       setUserChats([]);
@@ -771,124 +775,152 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
           {/* Chats Tab */}
           {activeTab === 'chats' && (
-            <div>
-              {selectedUser ? (
-                <div>
-                  {/* User Header */}
-                  <div className="glass border border-gray-200 dark:border-white/10 rounded-xl p-6 mb-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-lg">{selectedUser.name?.charAt(0) || '?'}</span>
-                        </div>
-                        <div>
-                          <h3 className="text-gray-900 dark:text-white text-lg">{selectedUser.name || 'Unknown'}</h3>
-                          <p className="text-gray-600 dark:text-white/60 text-sm">{selectedUser.email || 'No email'}</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setSelectedUser(null);
-                          setUserChats([]);
-                          setSelectedChat(null);
-                        }}
-                        className="px-4 py-2 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
-                      >
-                        Back to Users
-                      </button>
-                    </div>
+            <div className="flex gap-6 h-[calc(100vh-180px)]">
+              {/* User Selector Sidebar */}
+              <div className="w-80 glass border border-gray-200 dark:border-white/10 rounded-xl flex flex-col overflow-hidden">
+                <div className="p-4 border-b border-gray-200 dark:border-white/10">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-white/40" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search users..."
+                      className="w-full bg-gray-50 dark:bg-[#1e2936] text-gray-900 dark:text-white pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 focus:outline-none focus:border-indigo-500 text-sm"
+                    />
                   </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                  {filteredUsers.map(user => (
+                    <button
+                      key={user.id}
+                      onClick={() => handleViewUser(user)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${selectedUser?.id === user.id
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                        : 'text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5'
+                        }`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${selectedUser?.id === user.id ? 'bg-white/20' : 'bg-indigo-600'
+                        }`}>
+                        <span className="text-white text-xs">{user.name?.charAt(0) || '?'}</span>
+                      </div>
+                      <div className="text-left min-w-0">
+                        <div className="text-sm font-medium truncate">{user.name || 'Unknown'}</div>
+                        <div className={`text-xs truncate ${selectedUser?.id === user.id ? 'text-indigo-100' : 'text-gray-500 dark:text-white/40'
+                          }`}>{user.email}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                  {/* Chat List */}
-                  {selectedChat ? (
-                    <div className="glass border border-gray-200 dark:border-white/10 rounded-xl p-6">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-gray-900 dark:text-white text-lg">{selectedChat.title}</h3>
-                        <button
-                          onClick={() => setSelectedChat(null)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                        {selectedChat.messages.map(message => (
-                          <div key={message.id}>
-                            <div
-                              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'
-                                }`}
-                            >
-                              <div
-                                className={`max-w-[80%] ${message.sender === 'user'
-                                  ? 'bg-indigo-600 text-white'
-                                  : 'bg-[#1e2936] text-white/90'
-                                  } rounded-2xl px-4 py-3`}
-                              >
-                                <p className="whitespace-pre-line">{message.text}</p>
-                                <p
-                                  className={`text-xs mt-1 ${message.sender === 'user'
-                                    ? 'text-indigo-200'
-                                    : 'text-white/40'
-                                    }`}
-                                >
-                                  {new Date(message.timestamp).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
-                            {message.sender === 'ai' && message.helpful !== undefined && message.helpful !== null && (
-                              <div className="flex items-center gap-2 mt-2 ml-2">
-                                <span className="text-xs text-gray-600 dark:text-white/60">
-                                  Feedback: {message.helpful ? '👍 Helpful' : '👎 Not helpful'}
-                                </span>
-                              </div>
-                            )}
+              {/* Main Analytics View */}
+              <div className="flex-1 glass border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden flex flex-col">
+                {selectedUser ? (
+                  <div className="flex flex-col h-full">
+                    {/* User Header */}
+                    <div className="p-6 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                            <span className="text-white text-lg">{selectedUser.name?.charAt(0) || '?'}</span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {userChats.map(chat => (
-                        <div
-                          key={chat.id}
-                          onClick={() => setSelectedChat(chat)}
-                          className="glass border border-gray-200 dark:border-white/10 rounded-xl p-6 hover:border-indigo-500 cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-start gap-3">
-                            <MessageSquare className="w-5 h-5 text-indigo-400 mt-1" />
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-gray-900 dark:text-white mb-2 truncate">{chat.title}</h4>
-                              <p className="text-gray-600 dark:text-white/60 text-sm">
-                                {chat.messages.length} messages
-                              </p>
-                              <p className="text-gray-500 dark:text-white/40 text-xs mt-2 flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {new Date(chat.timestamp).toLocaleDateString()}
-                              </p>
-                            </div>
+                          <div>
+                            <h3 className="text-gray-900 dark:text-white text-lg font-bold">{selectedUser.name || 'Unknown'}</h3>
+                            <p className="text-gray-600 dark:text-white/60 text-sm">{selectedUser.email || 'No email'}</p>
                           </div>
                         </div>
-                      ))}
+                        <div className="flex items-center gap-3">
+                          <div className="px-3 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-bold">
+                            {userChats.length} Chats
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="w-10 h-10 text-indigo-400" />
+
+                    <div className="flex-1 overflow-y-auto p-6">
+                      {/* Chat List or Message View */}
+                      {selectedChat ? (
+                        <div className="space-y-6">
+                          <div className="flex items-center justify-between">
+                            <button
+                              onClick={() => setSelectedChat(null)}
+                              className="text-indigo-600 dark:text-indigo-400 text-sm font-bold flex items-center gap-1 hover:underline"
+                            >
+                              ← Back to all chats
+                            </button>
+                            <h3 className="text-gray-900 dark:text-white font-bold">{selectedChat.title}</h3>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            {selectedChat.messages.map(message => (
+                              <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${message.sender === 'user'
+                                  ? 'bg-indigo-600 text-white'
+                                  : 'bg-white dark:bg-[#1e2936] text-gray-900 dark:text-white/90 border border-gray-200 dark:border-white/10'
+                                  }`}>
+                                  <p className="text-sm whitespace-pre-line">{message.text}</p>
+                                  <p className={`text-[10px] mt-2 ${message.sender === 'user' ? 'text-indigo-200' : 'text-gray-400'}`}>
+                                    {new Date(message.timestamp).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          {userChats.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {userChats.map(chat => (
+                                <button
+                                  key={chat.id}
+                                  onClick={() => setSelectedChat(chat)}
+                                  className="text-left p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl hover:border-indigo-500 transition-all hover:shadow-lg group"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg group-hover:bg-indigo-600 transition-colors">
+                                      <MessageSquare className="w-5 h-5 text-indigo-600 dark:text-indigo-400 group-hover:text-white" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="text-gray-900 dark:text-white font-bold mb-1 truncate">{chat.title}</h4>
+                                      <p className="text-gray-500 dark:text-white/40 text-xs mb-3">
+                                        {chat.messages.length} messages
+                                      </p>
+                                      <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
+                                        <Calendar className="w-3 h-3" />
+                                        {new Date(chat.timestamp).toLocaleDateString()}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-20">
+                              <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <MessageSquare className="w-8 h-8 text-gray-300" />
+                              </div>
+                              <h3 className="text-gray-900 dark:text-white font-bold">No Chats Yet</h3>
+                              <p className="text-gray-500 dark:text-white/40 text-sm">This student hasn't started any conversations yet.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <h3 className="text-gray-900 dark:text-white text-xl mb-2">No User Selected</h3>
-                  <p className="text-gray-600 dark:text-white/60 mb-6">
-                    Select a user from the Users tab to view their chats
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('users')}
-                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
-                  >
-                    Go to Users
-                  </button>
-                </div>
-              )}
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-gray-50/50 dark:bg-white/5">
+                    <div className="w-24 h-24 bg-indigo-600/10 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                      <Users className="w-12 h-12 text-indigo-500 opacity-50" />
+                    </div>
+                    <h3 className="text-gray-900 dark:text-white text-2xl font-bold mb-2">Select a User</h3>
+                    <p className="text-gray-600 dark:text-white/60 max-w-sm">
+                      Choose a student from the list on the left to analyze their chat history and feedback.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
