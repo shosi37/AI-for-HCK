@@ -11,9 +11,10 @@ import {
   Menu,
   X,
   Trash2,
-  Mail,
   KeyRound,
   ChevronDown,
+  Settings,
+  Book,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { User as UserType } from '../types';
@@ -26,8 +27,7 @@ import {
   subscribeToFAQs,
 } from '../utils/firebase/db';
 import ThemeToggle from '../components/common/ThemeToggle';
-import EmailEditModal from '../components/modals/EmailEditModal';
-import PasswordEditModal from '../components/modals/PasswordEditModal';
+import SettingsModal from '../components/modals/SettingsModal';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 import { showErrorToast, showSuccessToast } from '../utils/notifications';
 
@@ -65,9 +65,8 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
   const [inputMessage, setInputMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [faqs, setFAQs] = useState<FAQ[]>([]);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -289,10 +288,17 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
         <div className="p-4 border-b border-gray-200 dark:border-white/10">
           <button
             onClick={createNewChat}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors mb-2"
           >
             <Plus className="w-4 h-4" />
             <span>New Chat</span>
+          </button>
+          <button
+            onClick={() => navigate('/library')}
+            className="w-full bg-white/5 hover:bg-white/10 text-gray-900 dark:text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors border border-gray-200 dark:border-white/10"
+          >
+            <Book className="w-4 h-4 text-indigo-500" />
+            <span>Digital Library</span>
           </button>
         </div>
 
@@ -396,41 +402,23 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
 
             {/* Dropdown Menu */}
             {showProfileDropdown && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 glass rounded-lg shadow-xl">
-                <Link
-                  to="/profile"
-                  onClick={() => setShowProfileDropdown(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/5 rounded-t-lg transition-colors text-sm"
-                >
-                  <User className="w-4 h-4" />
-                  Edit Profile
-                </Link>
+              <div className="absolute bottom-full left-0 right-0 mb-2 glass rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-white/10 animate-in slide-in-from-bottom-2 duration-200">
                 <button
                   onClick={() => {
-                    setShowEmailModal(true);
+                    setShowSettingsModal(true);
                     setShowProfileDropdown(false);
                   }}
-                  className="w-full text-left flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm"
+                  className="w-full text-left flex items-center gap-2 px-4 py-3 text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-bold border-b border-gray-200 dark:border-white/10"
                 >
-                  <Mail className="w-4 h-4" />
-                  Edit Email
-                </button>
-                <button
-                  onClick={() => {
-                    setShowPasswordModal(true);
-                    setShowProfileDropdown(false);
-                  }}
-                  className="w-full text-left flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm"
-                >
-                  <KeyRound className="w-4 h-4" />
-                  Edit Password
+                  <Settings className="w-4 h-4" />
+                  Settings
                 </button>
                 <button
                   onClick={() => {
                     onLogout();
                     setShowProfileDropdown(false);
                   }}
-                  className="w-full text-left flex items-center gap-2 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-b-lg transition-colors text-sm"
+                  className="w-full text-left flex items-center gap-2 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-sm"
                 >
                   <LogOut className="w-4 h-4" />
                   Logout
@@ -594,15 +582,12 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
       </div>
 
       {/* Modals */}
-      <EmailEditModal
+      <SettingsModal
         user={currentUser}
-        isOpen={showEmailModal}
-        onClose={() => setShowEmailModal(false)}
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
         onUpdate={handleUpdateUser}
-      />
-      <PasswordEditModal
-        isOpen={showPasswordModal}
-        onClose={() => setShowPasswordModal(false)}
+        onLogout={onLogout}
       />
     </div>
   );

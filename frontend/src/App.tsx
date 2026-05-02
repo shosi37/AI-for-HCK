@@ -13,6 +13,7 @@ import ProfileEdit from './pages/ProfileEdit';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ForgotPassword from './pages/ForgotPassword';
+import Library from './pages/Library';
 import { Toaster } from 'sonner';
 import { notify, showErrorToast } from './utils/notifications';
 import { User } from './types';
@@ -302,6 +303,16 @@ function App() {
                   onUpdateProfile={handleUpdateProfile}
                   onLogout={handleLogout}
                 />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/library"
+            element={
+              user ? (
+                <Library />
               ) : (
                 <Navigate to="/login" />
               )

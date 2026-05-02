@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, LogOut, Mail, KeyRound, User as UserIcon, ChevronDown } from 'lucide-react';
+import { MessageSquare, LogOut, Mail, KeyRound, User as UserIcon, ChevronDown, Settings, Book } from 'lucide-react';
 import type { User } from '../types';
 import ThemeToggle from '../components/common/ThemeToggle';
-import EmailEditModal from '../components/modals/EmailEditModal';
-import PasswordEditModal from '../components/modals/PasswordEditModal';
-import ProfileEditModal from '../components/modals/ProfileEditModal';
+import SettingsModal from '../components/modals/SettingsModal';
 import VerifyEmailModal from '../components/modals/VerifyEmailModal';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 
@@ -17,9 +15,7 @@ interface DashboardProps {
 
 export default function Dashboard({ user, onLogout, onRefresh }: DashboardProps) {
   const navigate = useNavigate();
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,7 +25,7 @@ export default function Dashboard({ user, onLogout, onRefresh }: DashboardProps)
   };
 
   const handleProfileClick = () => {
-    setShowProfileModal(true);
+    setShowSettingsModal(true);
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -116,31 +112,27 @@ export default function Dashboard({ user, onLogout, onRefresh }: DashboardProps)
 
               {/* Dropdown Menu */}
               {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 glass rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-2 w-56 glass rounded-2xl shadow-xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden border border-gray-200 dark:border-white/10">
                   <button
-                    onClick={handleProfileClick}
-                    className="w-full text-left px-4 py-3 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/5 rounded-t-lg transition-colors flex items-center gap-2"
+                    onClick={() => {
+                      setShowSettingsModal(true);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors flex items-center gap-2 font-bold border-b border-gray-200 dark:border-white/10"
                   >
-                    <UserIcon className="w-4 h-4" />
-                    Edit Profile
+                    <Settings className="w-4 h-4" />
+                    Settings
                   </button>
                   <button
-                    onClick={() => setShowEmailModal(true)}
+                    onClick={() => navigate('/library')}
                     className="w-full text-left px-4 py-3 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
                   >
-                    <Mail className="w-4 h-4" />
-                    Edit Email
-                  </button>
-                  <button
-                    onClick={() => setShowPasswordModal(true)}
-                    className="w-full text-left px-4 py-3 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
-                  >
-                    <KeyRound className="w-4 h-4" />
-                    Edit Password
+                    <Book className="w-4 h-4 text-indigo-500" />
+                    Library
                   </button>
                   <button
                     onClick={onLogout}
-                    className="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-b-lg transition-colors flex items-center gap-2"
+                    className="w-full text-left px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center gap-2"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -243,15 +235,18 @@ export default function Dashboard({ user, onLogout, onRefresh }: DashboardProps)
                 </div>
               </button>
 
-              <div className="glass text-gray-900 dark:text-white p-6 rounded-2xl border border-gray-200 dark:border-white/10">
-                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mb-3">
-                  <span className="text-green-500 text-xl">📚</span>
+              <button
+                onClick={() => navigate('/library')}
+                className="glass hover:bg-gray-100 dark:hover:bg-[#374151]/50 text-gray-900 dark:text-white p-6 rounded-2xl border border-gray-200 dark:border-white/10 transition-all hover:scale-105 text-left group"
+              >
+                <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Book className="w-4 h-4 text-indigo-500" />
                 </div>
-                <div className="text-lg">Library Hours</div>
+                <div className="text-lg">Digital Library</div>
                 <div className="text-gray-600 dark:text-white/60 text-sm mt-1">
-                  Mon-Fri: 8 AM - 8 PM
+                  Access eBooks & Resources
                 </div>
-              </div>
+              </button>
 
               <div className="glass text-gray-900 dark:text-white p-6 rounded-2xl border border-gray-200 dark:border-white/10">
                 <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center mb-3">
@@ -268,22 +263,12 @@ export default function Dashboard({ user, onLogout, onRefresh }: DashboardProps)
       </div>
 
       {/* Modals */}
-      <EmailEditModal
+      <SettingsModal
         user={currentUser}
-        isOpen={showEmailModal}
-        onClose={() => setShowEmailModal(false)}
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
         onUpdate={handleUpdateUser}
-      />
-      <PasswordEditModal
-        isOpen={showPasswordModal}
-        onClose={() => setShowPasswordModal(false)}
-      />
-
-      <ProfileEditModal
-        user={currentUser}
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-        onUpdateProfile={handleUpdateUser}
+        onLogout={onLogout}
       />
 
       <VerifyEmailModal
