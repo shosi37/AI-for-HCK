@@ -17,163 +17,229 @@ rules:
 - rule: programs
   steps:
     - intent: ask_programs
-    - action: utter_ask_programs
+    - action: action_ai_response
 
 - rule: undergraduate programs
   steps:
     - intent: ask_undergraduate_programs
-    - action: utter_ask_undergraduate_programs
+    - action: action_ai_response
 
 - rule: postgraduate programs
   steps:
     - intent: ask_postgraduate_programs
-    - action: utter_ask_postgraduate_programs
+    - action: action_ai_response
+
+- rule: cybersecurity
+  steps:
+    - intent: ask_cybersecurity
+    - action: action_ai_response
+
+- rule: imba
+  steps:
+    - intent: ask_imba
+    - action: action_ai_response
 
 # ---------------- ADMISSION ----------------
 - rule: admission requirements
   steps:
     - intent: ask_admission_requirements
-    - action: utter_ask_admission_requirements
+    - action: action_ai_response
 
 - rule: apply admission
   steps:
     - intent: ask_apply_admission
-    - action: utter_ask_apply_admission
+    - action: action_ai_response
 
 - rule: application deadline
   steps:
     - intent: ask_application_deadline
-    - action: utter_ask_application_deadline
+    - action: action_ai_response
 
 - rule: application fee
   steps:
     - intent: ask_application_fee
-    - action: utter_ask_application_fee
+    - action: action_ai_response
 
 # ---------------- LOCATION & CONTACT ----------------
 - rule: location
   steps:
     - intent: ask_location
-    - action: utter_ask_location
+    - action: action_ai_response
 
 - rule: contact
-  steps:
+    steps:
     - intent: ask_contact
-    - action: utter_ask_contact
+    - action: action_ai_response
+
+- rule: vision mission
+  steps:
+    - intent: ask_vision_mission
+    - action: action_ai_response
 
 # ---------------- FEES ----------------
 - rule: scholarships
   steps:
     - intent: ask_scholarships
-    - action: utter_ask_scholarships
+    - action: action_ai_response
 
 - rule: cs fees
   steps:
     - intent: ask_tuition_fees_cs
-    - action: utter_ask_tuition_fees_cs
+    - action: action_ai_response
 
 - rule: ibm fees
   steps:
     - intent: ask_tuition_fees_ibm
-    - action: utter_ask_tuition_fees_ibm
+    - action: action_ai_response
 
 - rule: installment plans
   steps:
     - intent: ask_installment_plans
-    - action: utter_ask_installment_plans
+    - action: action_ai_response
 
 # ---------------- CAMPUS ----------------
 - rule: cafeteria
   steps:
     - intent: ask_cafeteria
-    - action: utter_ask_cafeteria
+    - action: action_ai_response
 
 - rule: library hours
   steps:
     - intent: ask_library_hours
-    - action: utter_ask_library_hours
+    - action: action_ai_response
 
 - rule: wifi
   steps:
     - intent: ask_wifi
-    - action: utter_ask_wifi
+    - action: action_ai_response
+
+- rule: campus safety
+  steps:
+    - intent: ask_campus_safety
+    - action: action_ai_response
 
 # ---------------- STUDENT LIFE ----------------
 - rule: student clubs
   steps:
     - intent: ask_student_clubs
-    - action: utter_ask_student_clubs
+    - action: action_ai_response
+
+- rule: specific club details
+  steps:
+    - intent: ask_specific_club_details
+    - action: action_ai_response
 
 - rule: extracurricular
   steps:
     - intent: ask_extracurricular
-    - action: utter_ask_extracurricular
+    - action: action_ai_response
 
 - rule: sports facilities
   steps:
     - intent: ask_sports_facilities
-    - action: utter_ask_sports_facilities
+    - action: action_ai_response
+
+- rule: event details
+  steps:
+    - intent: ask_event_details
+    - action: action_ai_response
 
 # ---------------- CAREER ----------------
 - rule: internships
   steps:
     - intent: ask_internships
-    - action: utter_ask_internships
+    - action: action_ai_response
 
 - rule: job placement
   steps:
     - intent: ask_job_placement
-    - action: utter_ask_job_placement
+    - action: action_ai_response
 
 - rule: placement statistics
   steps:
     - intent: ask_placement_statistics
-    - action: utter_ask_placement_statistics
+    - action: action_ai_response
 
 # ---------------- FACILITIES ----------------
 - rule: hostel facilities
   steps:
     - intent: ask_hostel_facilities
-    - action: utter_ask_hostel_facilities
+    - action: action_ai_response
 
 - rule: transport facilities
   steps:
     - intent: ask_transport_facilities
-    - action: utter_ask_transport_facilities
+    - action: action_ai_response
 
 # ---------------- ACADEMIC ----------------
 - rule: faculty qualifications
   steps:
     - intent: ask_faculty_qualifications
-    - action: utter_ask_faculty_qualifications
+    - action: action_ai_response
 
 - rule: student counseling
   steps:
     - intent: ask_student_counseling
-    - action: utter_ask_student_counseling
+    - action: action_ai_response
 
 - rule: student exchange
   steps:
     - intent: ask_student_exchange
-    - action: utter_ask_student_exchange
+    - action: action_ai_response
 
 - rule: recommendation letter
   steps:
     - intent: ask_recommendation_letter
-    - action: utter_ask_recommendation_letter
+    - action: action_ai_response
 
 - rule: online resources
   steps:
     - intent: ask_online_resources
-    - action: utter_ask_online_resources
+    - action: action_ai_response
 
 - rule: credit transfer
   steps:
     - intent: ask_credit_transfer
-    - action: utter_ask_credit_transfer
+    - action: action_ai_response
+
+- rule: history
+  steps:
+    - intent: ask_history
+    - action: action_ai_response
+
+- rule: attendance rules
+  steps:
+    - intent: ask_attendance_rules
+    - action: action_ai_response
+
+- rule: grading system
+  steps:
+    - intent: ask_grading_system
+    - action: action_ai_response
+
+- rule: library card
+  steps:
+    - intent: ask_library_card
+    - action: action_ai_response
+
+- rule: convocation
+  steps:
+    - intent: ask_convocation
+    - action: action_ai_response
+
+- rule: hck info
+  steps:
+    - intent: ask_hck_info
+    - action: action_ai_response
+
+- rule: exam timetable
+  steps:
+    - intent: ask_exam_timetable
+    - action: action_ai_response
 
 # ---------------- FALLBACK ----------------
+
 - rule: fallback
   steps:
     - intent: nlu_fallback
-    - action: utter_nlu_fallback
+    - action: action_ai_response

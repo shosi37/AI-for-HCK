@@ -124,11 +124,28 @@ intents:
   - ask_transport_facilities
   - ask_placement_statistics
   - ask_faculty_qualifications
+  - ask_cybersecurity
+  - ask_imba
+  - ask_vision_mission
+  - ask_specific_club_details
+  - ask_event_details
+  - ask_campus_safety
+  - ask_hck_info
+  - ask_exam_timetable
+  - ask_student_counseling
+  - ask_student_exchange
+
+
 
 
 responses:
   utter_nlu_fallback:
-    - text: "Sorry, I didn't understand. Can you rephrase your question?"
+    - text: "Sorry, I didn't understand that. Could you please ask something related to Herald College Kathmandu?"
+  utter_default_fallback:
+    - text: "Sorry, I didn't understand that. Could you please ask something related to Herald College Kathmandu?"
+  utter_out_of_scope:
+    - text: "Sorry, I didn't understand that. Could you please ask something related to Herald College Kathmandu?"
+
   utter_chitchat_howareyou:
     - text: "I'm just a bot, but I'm doing great! How can I help you?"
   utter_chitchat_thanks:
@@ -245,7 +262,23 @@ responses:
   utter_ask_credit_transfer:
     - text: "Submit your transcripts and course details to the academic office for credit transfer evaluation. Processing time may vary."
 
-actions: []
+  utter_ask_history:
+    - text: "Herald College Kathmandu was established to provide world-class UK university education in Nepal. We have a rich history of academic excellence in partnership with the University of Wolverhampton."
+
+  utter_ask_attendance_rules:
+    - text: "Attendance is mandatory at Herald College. Students are expected to maintain at least 80% attendance in all classes to be eligible for exams."
+
+  utter_ask_grading_system:
+    - text: "We follow the UK grading system of the University of Wolverhampton. Your performance is evaluated based on coursework, exams, and projects."
+
+  utter_ask_library_card:
+    - text: "You can get your library card from the library counter after completing your enrollment. You'll need your student ID for the application."
+
+  utter_ask_convocation:
+    - text: "Convocation is held annually for graduating students. Details regarding registration and dates are announced on the college website and notice boards."
+
+actions:
+  - action_ai_response
 
 session_config:
   session_expiration_time: 60

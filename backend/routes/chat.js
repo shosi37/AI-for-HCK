@@ -11,7 +11,7 @@ router.post('/chat', async (req, res) => {
 	}
 	try {
 		// Forward message to Rasa server
-		const rasaRes = await axios.post('http://localhost:5005/webhooks/rest/webhook', {
+		const rasaRes = await axios.post('http://localhost:5006/webhooks/rest/webhook', {
 			sender,
 			message
 		});

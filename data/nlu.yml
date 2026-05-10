@@ -205,18 +205,15 @@ nlu:
     - what is the application fee
     - how much is the application fee
     - application fee amount
-    - admission fee
-    - cost of application
-    - fee for applying
-    - how much to apply
-    - application cost
-    - entrance fee
+    - application form fee
+    - cost of application form
+    - fee for applying to college
+    - how much to apply online
+    - application form cost
+    - entrance form fee
     - fee for admission form
-    - is the application fee refundable
-    - do I need to pay the fee online
-    - can I pay the application fee in cash
-    - is there a late fee for application
-    - do international students pay the same fee
+    - do I have to pay to apply
+    - registration fee for application
 
 # ---------------- PROGRAM DETAILS ----------------
 - intent: ask_undergraduate_programs
@@ -268,6 +265,15 @@ nlu:
 
 - intent: ask_tuition_fees_cs
   examples: |
+    - college fees
+    - college fee
+    - fees
+    - tuition
+    - cost
+    - how much to pay
+    - total fees
+    - what are the fees for herald
+    - tell me about the college fees
     - computer science fees
     - bsc cs fees
     - tuition for cs
@@ -547,11 +553,163 @@ nlu:
     - who approves credit transfer
     - is credit transfer guaranteed
 
+- intent: ask_history
+  examples: |
+    - what is the history of the college
+    - tell me about herald college history
+    - when was herald college established
+    - how did herald college start
+    - history of herald college kathmandu
+
+- intent: ask_attendance_rules
+  examples: |
+    - what are the attendance rules
+    - is attendance mandatory
+    - how much attendance is required
+    - attendance policy
+    - rules for class attendance
+
+- intent: ask_grading_system
+  examples: |
+    - what is the grading system
+    - how are students graded
+    - tell me about the marks system
+    - uk grading system
+    - how is my performance evaluated
+
+- intent: ask_library_card
+  examples: |
+    - how do I get a library card
+    - process for library card
+    - where to apply for library card
+    - I need a card for the library
+    - library membership process
+
+- intent: ask_convocation
+  examples: |
+    - when is the convocation
+    - tell me about graduation ceremony
+    - how to register for convocation
+    - convocation details
+    - graduation day information
+
+- intent: ask_cybersecurity
+  examples: |
+    - tell me about cybersecurity course
+    - do you have a cybersecurity program
+    - what is covered in cybersecurity
+    - cybersecurity modules
+    - fees for cybersecurity
+    - is cybersecurity available at herald
+    - tell me about bsc cybersecurity
+    - what can I learn in cybersecurity
+    - cybersecurity intake
+    - cybersecurity duration
+
+- intent: ask_imba
+  examples: |
+    - tell me about imba
+    - international mba details
+    - do you have masters in business
+    - imba modules
+    - imba fees
+    - who can apply for imba
+    - duration of imba
+    - imba intake
+    - is imba available here
+    - tell me about the masters program
+
+- intent: ask_vision_mission
+  examples: |
+    - what is the vision of the college
+    - what is your mission
+    - tell me about the vision and mission
+    - college goals
+    - what does herald college stand for
+    - mission statement
+    - vision statement
+
+- intent: ask_specific_club_details
+  examples: |
+    - tell me about herald devcorps
+    - what does the bit club do
+    - tell me about bibm society
+    - herald media club details
+    - what is the sports club
+    - info about student clubs
+    - tell me about tech clubs
+    - which club is for developers
+    - which club is for business students
+    - join devcorps
+    - media club activities
+
+- intent: ask_event_details
+  examples: |
+    - what is ingenium
+    - tell me about herald devcamp
+    - annual events at herald
+    - what events are coming up
+    - tell me about the welcome program
+    - when is ingenium
+    - info about devcamp
+    - annual fest details
+    - what activities happen at ingenium
+
+- intent: ask_campus_safety
+  examples: |
+    - is the campus safe
+    - security at herald
+    - campus safety measures
+    - how safe is the college
+    - is there security on campus
+    - security guards
+    - safety for girls
+    - campus safety
+
+- intent: ask_exam_timetable
+  examples: |
+    - exam timetable
+    - when is the exam
+    - show me the exam schedule
+    - timetable for exams
+    - I want to see the exam date
+    - exam routine
+    - when are my exams
+    - i aksed for exam timetable
+    - give me the exam timetable
+    - are there cctv cameras
+    - security personnel at college
+    - how safe is the college
+    - reporting safety concerns
+
+- intent: ask_hck_info
+  examples: |
+    - tell me everything about herald
+    - info about herald college kathmandu
+    - give me some facts about the college
+    - why should I join herald
+    - what makes herald special
+    - herald college details
+    - tell me about your university affiliation
+
 - intent: nlu_fallback
   examples: |
-    - blablabla
+    - hshshshshs
+    - jjdkdkdkdkdk
+    - lslslslslsls
+    - zzzzzzzzzzz
+    - 1234567890
+    - !@#$%^&*()
+    - what is the meaning of life
+    - who is the president
+    - tell me a story
+    - how to bake a cake
+    - random gibberish
     - asdfghjkl
-    - qwertyuiop
-    - random text
-    - gibberish
-    - nonsense
+    - blablabla
+    - help me with something else
+    - I have a random question
+    - can you do my homework
+    - kjdc bJBDCUJCD
+    - hbweibdwuhcdhccjcasdncdjndcsjoncsd
+    - mn cdsJDCdc
