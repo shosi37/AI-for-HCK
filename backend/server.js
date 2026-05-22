@@ -42,8 +42,12 @@ app.use(cors({
     // allow non-browser requests
     if (!origin) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
-    // dev localhost regex
+    // dev localhost regex and ngrok
     if (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return cb(null, true);
+    }
+    // Allow any ngrok-free.app or ngrok-free.dev domain for easy hosting
+    if (/\.ngrok-free\.(app|dev)$/.test(origin)) {
       return cb(null, true);
     }
     return cb(new Error('Blocked by CORS: ' + origin));
@@ -59,6 +63,7 @@ app.use(cookieParser());
 app.use('/api/otp', otpRoutes);
 app.use('/api/oauth', oauthRoutes); // This handles /api/oauth/google...
 app.use('/api', authRoutes); // This handles /api/login, /api/profile etc.
+app.use('/api', chatRoutes); // Mount chat routes
 app.use('/api/admin', adminRoutes); // Admin-specific routes: POST /api/admin/login
 
 // Root check

@@ -74,7 +74,7 @@ function App() {
           if (storedToken) {
             try {
               // Verify against backend using the stored token
-              const verifyRes = await fetch('http://localhost:4000/api/profile', {
+              const verifyRes = await fetch('/api/profile', {
                 headers: { 'Authorization': `Bearer ${storedToken}` }
               });
 
@@ -105,7 +105,7 @@ function App() {
 
             // 3. Global Backend Verification / Session Refresh
             const idToken = await firebaseUser.getIdToken();
-            const backendUrl = 'http://localhost:4000/api/login-token';
+            const backendUrl = '/api/login-token';
 
             fetch(backendUrl, {
               method: 'POST',
@@ -191,7 +191,7 @@ function App() {
       }
 
       const idToken = await firebaseUser.getIdToken(true); // Force refresh
-      const backendUrl = 'http://localhost:4000/api/login-token';
+      const backendUrl = '/api/login-token';
       const res = await fetch(backendUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

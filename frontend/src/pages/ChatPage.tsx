@@ -230,8 +230,8 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
     await updateChat(user.id, chatWithUserMessage);
 
     try {
-      // Send message to Rasa REST API
-      const rasaResponse = await fetch('http://127.0.0.1:5006/webhooks/rest/webhook?token=mysecret123', {
+      // Send message to backend API which safely proxies to Rasa
+      const backendResponse = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -242,11 +242,13 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
         }),
       });
 
-      if (!rasaResponse.ok) {
-        throw new Error('Failed to get response from Rasa');
+      if (!backendResponse.ok) {
+        throw new Error('Failed to get response from Backend/Rasa');
       }
 
-      const rasaData = await rasaResponse.json();
+      const responseData = await backendResponse.json();
+      const rasaData = responseData.responses; // Backend returns { responses: [...] }
+
       let botReply = 'Sorry, I did not understand that.';
       if (Array.isArray(rasaData) && rasaData.length > 0 && rasaData[0].text) {
         botReply = rasaData.map((r: any) => r.text).join('\n');

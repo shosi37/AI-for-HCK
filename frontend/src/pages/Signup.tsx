@@ -73,7 +73,7 @@ export default function Signup({ onSignup }: SignupProps) {
 
       // Request OTP from backend
       try {
-        await fetch('http://localhost:4000/api/otp/send', {
+        await fetch('/api/otp/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, uid: userProfile.id }),
@@ -127,7 +127,7 @@ export default function Signup({ onSignup }: SignupProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4000/api/otp/verify', {
+      const response = await fetch('/api/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: tempUser.email, otp, uid: tempUser.id }),
@@ -152,7 +152,7 @@ export default function Signup({ onSignup }: SignupProps) {
     if (!tempUser || resendTimer > 0) return;
     setIsLoading(true);
     try {
-      await fetch('http://localhost:4000/api/otp/send', {
+      await fetch('/api/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: tempUser.email, uid: tempUser.id }),

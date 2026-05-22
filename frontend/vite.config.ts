@@ -57,6 +57,7 @@
     server: {
       port: 3000,
       open: true,
+      allowedHosts: ['spoiling-applied-polymer.ngrok-free.dev'],
       proxy: {
         '/api': {
           target: 'http://localhost:4000',

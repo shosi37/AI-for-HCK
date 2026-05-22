@@ -99,7 +99,7 @@ export default function Login({ onLogin, onAdminLogin }: LoginProps) {
       // but to ensure UI shows it nicely in the success screen:
       try {
         if (idToken) {
-          const backendUrl = 'http://localhost:4000/api/login-token';
+          const backendUrl = '/api/login-token';
           fetch(backendUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -157,7 +157,7 @@ export default function Login({ onLogin, onAdminLogin }: LoginProps) {
 
       // Verify with Backend
       try {
-        const backendUrl = 'http://localhost:4000/api/login-token';
+        const backendUrl = '/api/login-token';
         const response = await fetch(backendUrl, {
           method: 'POST',
           headers: {

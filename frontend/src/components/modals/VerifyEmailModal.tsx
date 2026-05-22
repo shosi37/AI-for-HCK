@@ -25,7 +25,7 @@ export default function VerifyEmailModal({ isOpen, onClose, userEmail, userId, o
         setSuccess('');
 
         try {
-            const response = await fetch('http://localhost:4000/api/otp/send', {
+            const response = await fetch('/api/otp/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: userEmail, uid: userId }),
@@ -65,7 +65,7 @@ export default function VerifyEmailModal({ isOpen, onClose, userEmail, userId, o
         setError('');
 
         try {
-            const response = await fetch('http://localhost:4000/api/otp/verify', {
+            const response = await fetch('/api/otp/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: userEmail, otp, uid: userId }),
