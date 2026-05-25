@@ -1,50 +1,162 @@
 [
   {
-    "text": "blablabla",
+    "text": "how safe is the college",
+    "intent": "ask_exam_timetable",
+    "intent_prediction": {
+      "name": "ask_campus_safety",
+      "confidence": 0.7149602174758911
+    }
+  },
+  {
+    "text": "hshshshshs",
     "intent": "nlu_fallback",
     "intent_prediction": {
-      "name": "ask_job_placement",
-      "confidence": 0.01544125284999609
+      "name": "ask_convocation",
+      "confidence": 0.0014542712597176433
+    }
+  },
+  {
+    "text": "jjdkdkdkdkdk",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0010447308886796236
+    }
+  },
+  {
+    "text": "lslslslslsls",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_online_resources",
+      "confidence": 0.00038724177284166217
+    }
+  },
+  {
+    "text": "zzzzzzzzzzz",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_online_resources",
+      "confidence": 0.0006332403281703591
+    }
+  },
+  {
+    "text": "1234567890",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0006837991531938314
+    }
+  },
+  {
+    "text": "!@#$%^&*()",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_internships",
+      "confidence": 0.0865599662065506
+    }
+  },
+  {
+    "text": "what is the meaning of life",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0017823317321017385
+    }
+  },
+  {
+    "text": "who is the president",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0007395020802505314
+    }
+  },
+  {
+    "text": "tell me a story",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0006365010631270707
+    }
+  },
+  {
+    "text": "how to bake a cake",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0004722787707578391
+    }
+  },
+  {
+    "text": "random gibberish",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0005530807538889349
     }
   },
   {
     "text": "asdfghjkl",
     "intent": "nlu_fallback",
     "intent_prediction": {
-      "name": "ask_tuition_fees_ibm",
-      "confidence": 0.011680797673761845
+      "name": "ask_internships",
+      "confidence": 0.00039358899812214077
     }
   },
   {
-    "text": "qwertyuiop",
+    "text": "blablabla",
     "intent": "nlu_fallback",
     "intent_prediction": {
-      "name": "ask_job_placement",
-      "confidence": 0.018181147053837776
+      "name": "ask_convocation",
+      "confidence": 0.0007041213102638721
     }
   },
   {
-    "text": "random text",
+    "text": "help me with something else",
     "intent": "nlu_fallback",
     "intent_prediction": {
-      "name": "ask_tuition_fees_ibm",
-      "confidence": 0.006545324809849262
+      "name": "ask_convocation",
+      "confidence": 0.0010219491086900234
     }
   },
   {
-    "text": "gibberish",
+    "text": "I have a random question",
     "intent": "nlu_fallback",
     "intent_prediction": {
-      "name": "ask_tuition_fees_ibm",
-      "confidence": 0.01176073681563139
+      "name": "ask_convocation",
+      "confidence": 0.0006251332815736532
     }
   },
   {
-    "text": "nonsense",
+    "text": "can you do my homework",
     "intent": "nlu_fallback",
     "intent_prediction": {
-      "name": "ask_job_placement",
-      "confidence": 0.012163219042122364
+      "name": "ask_online_resources",
+      "confidence": 0.001209918293170631
+    }
+  },
+  {
+    "text": "kjdc bJBDCUJCD",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0005678533925674856
+    }
+  },
+  {
+    "text": "hbweibdwuhcdhccjcasdncdjndcsjoncsd",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0005581449368037283
+    }
+  },
+  {
+    "text": "mn cdsJDCdc",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "ask_convocation",
+      "confidence": 0.0009963130578398705
     }
   }
 ]

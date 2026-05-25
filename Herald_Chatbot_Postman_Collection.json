@@ -1,0 +1,293 @@
+{
+  "info": {
+    "name": "Herald College Chatbot API Tests",
+    "description": "Integration tests for the AI Chatbot API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Ask Programs",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"What programs do you offer?\",\n  \"sender\": \"user123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Greet",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Hello\",\n  \"sender\": \"user456\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Ask Admission Requirements",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"What are the admission requirements?\",\n  \"sender\": \"user789\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Ask Location",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Where is the college located?\",\n  \"sender\": \"user101\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Ask Application Deadline",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"When is the application deadline?\",\n  \"sender\": \"user202\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Ask Tuition Fees CS",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"What are the tuition fees for Computer Science?\",\n  \"sender\": \"user303\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Ask Job Placement (Low Confidence)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Tell me about job placement rates\",\n  \"sender\": \"user404\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Fallback Intent (Unknown Query)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Can you tell me a joke about programming?\",\n  \"sender\": \"user505\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. Goodbye",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Goodbye!\",\n  \"sender\": \"user606\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. Error - Missing Message Field",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sender\": \"user707\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["chat"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11. Intent Prediction",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"What courses do you offer?\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/predict",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["predict"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12. Get User Session History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/session/user123",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["session", "user123"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

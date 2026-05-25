@@ -1,19 +1,93 @@
 {
-  "ask_faculty_qualifications": {
+  "ask_application_fee": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 12,
+    "confused_with": {}
+  },
+  "ask_attendance_rules": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 5,
+    "confused_with": {}
+  },
+  "ask_convocation": {
+    "precision": 0.2631578947368421,
+    "recall": 1.0,
+    "f1-score": 0.4166666666666667,
+    "support": 5,
+    "confused_with": {}
+  },
+  "ask_grading_system": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 5,
+    "confused_with": {}
+  },
+  "ask_recommendation_letter": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
     "support": 10,
     "confused_with": {}
   },
-  "ask_application_deadline": {
+  "ask_vision_mission": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 7,
+    "confused_with": {}
+  },
+  "ask_student_clubs": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
     "support": 10,
     "confused_with": {}
   },
-  "ask_placement_statistics": {
+  "ask_scholarships": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 17,
+    "confused_with": {}
+  },
+  "ask_student_exchange": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 10,
+    "confused_with": {}
+  },
+  "ask_credit_transfer": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 10,
+    "confused_with": {}
+  },
+  "ask_undergraduate_programs": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 10,
+    "confused_with": {}
+  },
+  "nlu_fallback": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1-score": 0.0,
+    "support": 19,
+    "confused_with": {
+      "ask_convocation": 14,
+      "ask_online_resources": 3,
+      "ask_internships": 2
+    }
+  },
+  "ask_cybersecurity": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
@@ -34,27 +108,6 @@
     "support": 10,
     "confused_with": {}
   },
-  "ask_internships": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 10,
-    "confused_with": {}
-  },
-  "ask_apply_admission": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 9,
-    "confused_with": {}
-  },
-  "goodbye": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 5,
-    "confused_with": {}
-  },
   "ask_postgraduate_programs": {
     "precision": 1.0,
     "recall": 1.0,
@@ -62,21 +115,7 @@
     "support": 10,
     "confused_with": {}
   },
-  "ask_recommendation_letter": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 10,
-    "confused_with": {}
-  },
-  "greet": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 59,
-    "confused_with": {}
-  },
-  "ask_extracurricular": {
+  "ask_job_placement": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
@@ -90,7 +129,28 @@
     "support": 10,
     "confused_with": {}
   },
-  "ask_library_hours": {
+  "ask_tuition_fees_cs": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 29,
+    "confused_with": {}
+  },
+  "ask_specific_club_details": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 11,
+    "confused_with": {}
+  },
+  "ask_programs": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 38,
+    "confused_with": {}
+  },
+  "ask_extracurricular": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
@@ -104,11 +164,18 @@
     "support": 29,
     "confused_with": {}
   },
-  "ask_application_fee": {
+  "ask_event_details": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 15,
+    "support": 9,
+    "confused_with": {}
+  },
+  "goodbye": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 5,
     "confused_with": {}
   },
   "ask_transport_facilities": {
@@ -118,17 +185,52 @@
     "support": 10,
     "confused_with": {}
   },
-  "ask_location": {
+  "ask_student_counseling": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 9,
+    "support": 10,
     "confused_with": {}
   },
-  "ask_hostel_facilities": {
+  "ask_campus_safety": {
+    "precision": 0.8888888888888888,
+    "recall": 1.0,
+    "f1-score": 0.9411764705882353,
+    "support": 8,
+    "confused_with": {}
+  },
+  "ask_history": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
+    "support": 5,
+    "confused_with": {}
+  },
+  "ask_hck_info": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 7,
+    "confused_with": {}
+  },
+  "ask_library_card": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 5,
+    "confused_with": {}
+  },
+  "ask_internships": {
+    "precision": 0.8333333333333334,
+    "recall": 1.0,
+    "f1-score": 0.9090909090909091,
+    "support": 10,
+    "confused_with": {}
+  },
+  "ask_online_resources": {
+    "precision": 0.7692307692307693,
+    "recall": 1.0,
+    "f1-score": 0.8695652173913044,
     "support": 10,
     "confused_with": {}
   },
@@ -139,21 +241,23 @@
     "support": 10,
     "confused_with": {}
   },
-  "ask_job_placement": {
-    "precision": 0.7692307692307693,
-    "recall": 1.0,
-    "f1-score": 0.8695652173913044,
-    "support": 10,
-    "confused_with": {}
-  },
-  "ask_student_exchange": {
+  "ask_apply_admission": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 10,
+    "support": 9,
     "confused_with": {}
   },
-  "ask_undergraduate_programs": {
+  "ask_exam_timetable": {
+    "precision": 1.0,
+    "recall": 0.9230769230769231,
+    "f1-score": 0.9600000000000001,
+    "support": 13,
+    "confused_with": {
+      "ask_campus_safety": 1
+    }
+  },
+  "ask_placement_statistics": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
@@ -167,89 +271,79 @@
     "support": 9,
     "confused_with": {}
   },
-  "nlu_fallback": {
-    "precision": 0.0,
-    "recall": 0.0,
-    "f1-score": 0.0,
-    "support": 6,
-    "confused_with": {
-      "ask_job_placement": 3,
-      "ask_tuition_fees_ibm": 3
-    }
-  },
-  "ask_programs": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 38,
-    "confused_with": {}
-  },
-  "ask_online_resources": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 10,
-    "confused_with": {}
-  },
-  "ask_student_clubs": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 10,
-    "confused_with": {}
-  },
-  "ask_credit_transfer": {
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 10,
-    "confused_with": {}
-  },
   "ask_tuition_fees_ibm": {
-    "precision": 0.7692307692307693,
-    "recall": 1.0,
-    "f1-score": 0.8695652173913044,
-    "support": 10,
-    "confused_with": {}
-  },
-  "ask_student_counseling": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
     "support": 10,
     "confused_with": {}
   },
-  "ask_tuition_fees_cs": {
+  "ask_faculty_qualifications": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 20,
+    "support": 10,
     "confused_with": {}
   },
-  "ask_scholarships": {
+  "ask_application_deadline": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 17,
+    "support": 10,
     "confused_with": {}
   },
-  "accuracy": 0.9864559819413092,
+  "ask_hostel_facilities": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 10,
+    "confused_with": {}
+  },
+  "ask_location": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 9,
+    "confused_with": {}
+  },
+  "ask_imba": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 10,
+    "confused_with": {}
+  },
+  "ask_library_hours": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 10,
+    "confused_with": {}
+  },
+  "greet": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 59,
+    "confused_with": {}
+  },
+  "accuracy": 0.9644128113879004,
   "macro avg": {
-    "precision": 0.9557109557109558,
-    "recall": 0.9696969696969697,
-    "f1-score": 0.9617918313570488,
-    "support": 443
+    "precision": 0.9511871931780399,
+    "recall": 0.9765886287625417,
+    "f1-score": 0.9586195492116765,
+    "support": 562
   },
   "weighted avg": {
-    "precision": 0.9760375065115471,
-    "recall": 0.9864559819413092,
-    "f1-score": 0.9805672784375308,
-    "support": 443
+    "precision": 0.9509831701253316,
+    "recall": 0.9644128113879004,
+    "f1-score": 0.9553012568734188,
+    "support": 562
   },
   "micro avg": {
-    "precision": 0.9864559819413092,
-    "recall": 0.9864559819413092,
-    "f1-score": 0.9864559819413092,
-    "support": 443
+    "precision": 0.9644128113879004,
+    "recall": 0.9644128113879004,
+    "f1-score": 0.9644128113879004,
+    "support": 562
   }
 }
