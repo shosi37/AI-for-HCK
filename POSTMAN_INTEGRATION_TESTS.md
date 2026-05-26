@@ -339,7 +339,7 @@ Content-Type: application/json
 
 | Metric | Value |
 |--------|-------|
-| Overall Accuracy | 98.65% |
+| Overall Accuracy | 88.65% |
 | Intents with 100% F1-score | 28 |
 | Intents below 85% F1-score | 1 (nlu_fallback) |
 | Average Response Time | ~500ms |
