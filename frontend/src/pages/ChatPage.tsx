@@ -222,40 +222,65 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
   };
 
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
+  /**
+   * Helper function to handle sending a user message, checking if it is an FAQ
+   * that can be answered immediately from database records, or sending it to the
+   * Rasa backend.
+   * @param messageText The plain text content of the message to send.
+   */
+  const sendMessageText = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
 
-    if (!user?.id || !currentChat) {
+    if (!user?.id) {
       return;
+    }
+
+    let activeChat = currentChat;
+
+    // Auto-create a new chat session if none is selected (ChatGPT style)
+    if (!activeChat) {
+      const welcomeMessage: Message = {
+        id: '1',
+        text: `Hello ${user.name}! 👋 I'm the HCK College AI Assistant. I'm here to help you with any questions about courses, admissions, campus facilities, events, and more. How can I assist you today?`,
+        sender: 'ai',
+        timestamp: new Date(),
+      };
+
+      const newChat: Chat = {
+        id: Date.now().toString(),
+        title: 'New conversation',
+        timestamp: new Date(),
+        messages: [welcomeMessage],
+        userId: user.id,
+      };
+
+      activeChat = newChat;
+      await saveChat(user.id, newChat);
+      setCurrentChat(newChat);
     }
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
+      text: messageText,
       sender: 'user',
       timestamp: new Date(),
     };
 
     // Smart Title Generation (ChatGPT style)
-    let newTitle = currentChat.title;
-    const isNewChat = currentChat.title === 'New conversation' || currentChat.messages.length <= 1;
-    
+    let newTitle = activeChat.title;
+    const isNewChat = activeChat.title === 'New conversation' || activeChat.messages.length <= 1;
+
     if (isNewChat) {
-      // Pick first 4-5 words or first 30 chars for a cleaner title
-      const words = inputMessage.trim().split(/\s+/);
+      const words = messageText.trim().split(/\s+/);
       newTitle = words.length > 5 
         ? words.slice(0, 5).join(' ') + '...' 
-        : inputMessage.slice(0, 30);
-      
-      // Capitalize first letter and clean up
+        : messageText.slice(0, 30);
       newTitle = newTitle.trim().charAt(0).toUpperCase() + newTitle.trim().slice(1);
     }
 
-    // Update local state first for immediate feedback
     const chatWithUserMessage: Chat = {
-      ...currentChat,
-      messages: [...currentChat.messages, userMessage],
+      ...activeChat,
+      messages: [...activeChat.messages, userMessage],
       title: newTitle,
       timestamp: new Date(),
     };
@@ -267,6 +292,34 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
     // Save title/message to Firebase immediately so sidebar updates instantly
     await updateChat(user.id, chatWithUserMessage);
 
+    // Check if the message matches a predefined FAQ (case-insensitive)
+    const matchingFAQ = faqs.find(
+      f => f.question.trim().toLowerCase() === messageText.trim().toLowerCase()
+    );
+
+    if (matchingFAQ) {
+      // Direct FAQ local response (simulated natural network typing delay)
+      setTimeout(async () => {
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: matchingFAQ.answer,
+          sender: 'ai',
+          timestamp: new Date(),
+          helpful: null,
+        };
+
+        const finalChat: Chat = {
+          ...chatWithUserMessage,
+          messages: [...chatWithUserMessage.messages, aiResponse],
+        };
+
+        setCurrentChat(finalChat);
+        setIsLoading(false);
+        await updateChat(user.id, finalChat);
+      }, 500);
+      return;
+    }
+
     try {
       // Send message to backend API which safely proxies to Rasa
       const backendResponse = await fetch('/api/chat', {
@@ -276,7 +329,7 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
         },
         body: JSON.stringify({
           sender: user.id,
-          message: inputMessage,
+          message: messageText,
         }),
       });
 
@@ -285,7 +338,7 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
       }
 
       const responseData = await backendResponse.json();
-      const rasaData = responseData.responses; // Backend returns { responses: [...] }
+      const rasaData = responseData.responses;
 
       let botReply = 'Sorry, I did not understand that.';
       if (Array.isArray(rasaData) && rasaData.length > 0 && rasaData[0].text) {
@@ -306,7 +359,6 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
       };
 
       setCurrentChat(finalChat);
-      // Save to Firebase
       await updateChat(user.id, finalChat);
     } catch (error) {
       console.error('Chat Error:', error);
@@ -314,6 +366,14 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  /**
+   * Handles user submission of a message via the text input form.
+   */
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendMessageText(inputMessage);
   };
 
   const handleFeedback = async (messageId: string, isHelpful: boolean) => {
@@ -431,7 +491,7 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
               {suggestions.map((suggestion, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setInputMessage(suggestion)}
+                  onClick={() => sendMessageText(suggestion)}
                   className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
                 >
                   {suggestion}
@@ -447,7 +507,7 @@ export default function ChatPage({ user, onLogout }: ChatPageProps) {
               {faqs.slice(0, 5).map((faq, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setInputMessage(faq.question)}
+                  onClick={() => sendMessageText(faq.question)}
                   className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
                 >
                   {faq.question}
