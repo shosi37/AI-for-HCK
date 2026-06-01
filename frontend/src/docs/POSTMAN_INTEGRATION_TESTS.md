@@ -152,7 +152,7 @@ Content-Type: application/json
 ```json
 {
   "recipient_id": "user303",
-  "text": "The tuition fees for BSc Computer Science are NPR 4,50,000 per year. Payment plans and scholarships are available. For details, contact the finance office.",
+  "text": "The tuition fee for BSc (Hons) Computer Science is NPR 7,50,000 for the full program.",
   "intent": "ask_tuition_fees_cs",
   "confidence": 0.987,
   "timestamp": "2026-05-26T03:35:00Z"
@@ -178,7 +178,7 @@ Content-Type: application/json
 ```json
 {
   "recipient_id": "user404",
-  "text": "Our graduates have strong placement records with companies in the IT and business sectors. For specific statistics, please contact the placement office.",
+  "text": "Our career services help students with job placement and career counseling.",
   "intent": "ask_job_placement",
   "confidence": 0.77,
   "timestamp": "2026-05-26T03:36:00Z"

@@ -67,10 +67,10 @@ Rasa requires significant memory (at least 2GB RAM, though 4GB is recommended) t
    ```
 6. Run the Rasa server in API mode using a process manager like `tmux` or `systemd` to keep it running in the background:
    ```bash
-   rasa run -m models --enable-api --cors "*" --port 5005
+   rasa run -m models --enable-api --cors "*" --port 5006
    ```
    *(You will also need to run `rasa run actions` in a separate terminal if you use custom actions).*
-7. **Important**: Update your Node.js backend's `chat.js` file to point to your new VPS IP address (e.g., `http://your_server_ip:5005/webhooks/rest/webhook`) instead of `http://localhost:5005`.
+7. **Important**: Update your Node.js backend's `chat.js` file to point to your new VPS IP address (e.g., `http://your_server_ip:5006/webhooks/rest/webhook`) instead of `http://localhost:5006`.
 
 > [!TIP]
 > **Docker Alternative**

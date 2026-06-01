@@ -1,5 +1,8 @@
 # Quick Start: Setting Up Google Forms Survey
 
+> [!NOTE]
+> **Built-in System Alternative**: This application already includes an automated, built-in feedback logging system (Helpful/Not Helpful buttons on each response) and an Admin Dashboard to monitor accuracy. Use this Google Forms template only if you want to conduct a more comprehensive/qualitative survey of your users.
+
 ## Step 1: Create the Form (2 minutes)
 
 1. Go to https://forms.google.com
