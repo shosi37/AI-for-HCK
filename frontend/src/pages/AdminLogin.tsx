@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Admin login page.
+ * Authenticates admins via the backend API and signs them into Firebase
+ * using a custom token, then redirects to the admin dashboard.
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,6 +17,9 @@ import AnimatedBackground from '../components/common/AnimatedBackground';
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../utils/firebase/config";
 
+/**
+ * Props for the AdminLogin page component.
+ */
 interface AdminLoginProps {
   onAdminLogin: () => void;
 }

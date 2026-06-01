@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Global TypeScript declarations.
+ * Provides fallback types for external modules and ui-components when actual types are missing.
+ */
+
 // Allow imports that include a version suffix like "package@1.2.3" used in this repo
 // Treat these modules as "any" so named and default imports work without type declarations
 declare module '*@*';
@@ -27,4 +32,3 @@ declare global {
 }
 
 export {};
-

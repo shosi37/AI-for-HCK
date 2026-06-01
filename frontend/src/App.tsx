@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Main Application Component and Routing setup.
+ * Handles top-level authentication state, routing logic, and global layouts.
+ */
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -19,8 +24,11 @@ import { Toaster } from 'sonner';
 import { notify, showErrorToast } from './utils/notifications';
 import { User } from './types';
 
-
-
+/**
+ * Main App component.
+ * Orchestrates the application's Firebase authentication, multi-tab session coordination,
+ * anti-tamper checking, and top-level React Router view navigation.
+ */
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);

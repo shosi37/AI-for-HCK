@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Firebase Authentication API Wrappers.
+ * Provides functions for user registration, login (email/password & Google OAuth),
+ * password resets, and user profile management within Firestore.
+ */
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -27,7 +33,17 @@ export interface UserProfile {
   isVerified: boolean;
 }
 
-// Sign up new user
+/**
+ * Registers a new user with email and password, and creates a user profile in Firestore.
+ * 
+ * @param {string} email - User's email address.
+ * @param {string} password - User's password.
+ * @param {string} name - User's display name.
+ * @param {string} [studentId] - Optional student ID.
+ * @param {string} [department] - Optional department.
+ * @param {string} [year] - Optional academic year.
+ * @returns {Promise<UserProfile>} The newly created user profile.
+ */
 export const signUp = async (
   email: string,
   password: string,
@@ -65,7 +81,14 @@ export const signUp = async (
   }
 };
 
-// Sign in user
+/**
+ * Authenticates a user with email and password, retrieving their profile from Firestore.
+ * If the Firestore document is missing or inaccessible, it creates a fallback profile based on Auth data.
+ * 
+ * @param {string} email - User's email address.
+ * @param {string} password - User's password.
+ * @returns {Promise<UserProfile>} The authenticated user's profile.
+ */
 export const signIn = async (email: string, password: string): Promise<UserProfile> => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -122,7 +145,11 @@ export const signIn = async (email: string, password: string): Promise<UserProfi
   }
 };
 
-// Sign out user
+/**
+ * Signs out the currently authenticated user from Firebase Auth.
+ * 
+ * @returns {Promise<void>}
+ */
 export const logOut = async (): Promise<void> => {
   try {
     await signOut(auth);
@@ -132,7 +159,13 @@ export const logOut = async (): Promise<void> => {
   }
 };
 
-// Get current user profile
+/**
+ * Retrieves the profile of the currently signed-in user from Firestore.
+ * Falls back to basic Firebase Auth data if the Firestore document doesn't exist or permissions fail.
+ * 
+ * @param {FirebaseUser} user - The authenticated Firebase user object.
+ * @returns {Promise<UserProfile | null>} The user's profile, or null if invalid.
+ */
 export const getCurrentUserProfile = async (user: FirebaseUser): Promise<UserProfile | null> => {
   if (!user || !user.uid) {
     console.error('getCurrentUserProfile called with invalid user');
@@ -184,7 +217,15 @@ export const getCurrentUserProfile = async (user: FirebaseUser): Promise<UserPro
   }
 };
 
-// Update user profile
+/**
+ * Updates specific fields of a user's profile in Firestore.
+ * Filters out undefined, null, or invalid data before sending.
+ * Also updates the Firebase Auth display name if the name is changed.
+ * 
+ * @param {string} userId - The user's UID.
+ * @param {Partial<UserProfile>} updates - An object containing the fields to update.
+ * @returns {Promise<void>}
+ */
 export const updateUserProfile = async (
   userId: string,
   updates: Partial<UserProfile>
@@ -235,12 +276,22 @@ export const updateUserProfile = async (
   }
 };
 
-// Check if user is admin
+/**
+ * Checks if a given email belongs to a system administrator.
+ * 
+ * @param {string} email - The email to check.
+ * @returns {boolean} True if the email is an admin email.
+ */
 export const isAdmin = (email: string): boolean => {
   return email === 'admin@hck.edu';
 };
 
-// Sign in with Google OAuth
+/**
+ * Initiates the Google OAuth sign-in flow via popup.
+ * Creates a new Firestore user profile if one does not already exist.
+ * 
+ * @returns {Promise<{ userProfile: UserProfile, idToken: string, accessToken?: string }>} The authentication results.
+ */
 export const signInWithGoogle = async (): Promise<{
   userProfile: UserProfile;
   idToken: string;
@@ -343,7 +394,12 @@ export const signInWithGoogle = async (): Promise<{
   }
 };
 
-// Send password reset email
+/**
+ * Sends a password reset email to the specified address.
+ * 
+ * @param {string} email - The user's email address.
+ * @returns {Promise<void>}
+ */
 export const sendPasswordResetEmail = async (email: string): Promise<void> => {
   try {
     await firebaseSendPasswordResetEmail(auth, email);

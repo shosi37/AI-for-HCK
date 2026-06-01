@@ -13,6 +13,13 @@ import type { User as UserType } from '../../types';
 import { updateUserProfile } from '../../utils/firebase/auth';
 import { notify } from '../../utils/notifications';
 
+/**
+ * @fileoverview Modal for users to update their profile details (name, department, year, etc.).
+ */
+
+/**
+ * Props for the ProfileEditModal component.
+ */
 interface ProfileEditModalProps {
     user: UserType;
     isOpen: boolean;

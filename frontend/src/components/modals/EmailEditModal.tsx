@@ -4,6 +4,14 @@ import { updateUserEmail } from '../../utils/firebase/auth';
 import type { User } from '../../types';
 import { notify } from '../../utils/notifications';
 
+/**
+ * @fileoverview Modal for users to change their account email address.
+ * Requires re-authentication with current password before updating.
+ */
+
+/**
+ * Props for the EmailEditModal component.
+ */
 interface EmailEditModalProps {
   user: User;
   isOpen: boolean;

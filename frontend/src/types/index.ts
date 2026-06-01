@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Global type definitions for the frontend.
+ */
+
+/**
+ * Represents a user profile in the application.
+ */
 export interface User {
     id: string;
     email: string;

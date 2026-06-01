@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Login page component.
+ * Allows users to sign in using their email and password, or Google authentication,
+ * with integration into Firebase Auth and the backend API.
+ */
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, Check, Loader2, Shield, CheckCircle } from 'lucide-react';
@@ -8,11 +14,21 @@ import { auth } from '../utils/firebase/config';
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 
+/**
+ * Props for the Login component.
+ */
 interface LoginProps {
+  /** Callback function triggered upon successful user login. */
   onLogin: (user: User) => void;
+  /** Callback function to handle navigation/switching to admin login. */
   onAdminLogin: () => void;
 }
 
+/**
+ * Login component rendering the user sign-in screen.
+ * Handles validation, email completion suggestions, credentials login,
+ * Google OAuth, and displays authentication tokens upon success for debugging.
+ */
 export default function Login({ onLogin, onAdminLogin }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

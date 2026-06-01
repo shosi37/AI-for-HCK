@@ -1,6 +1,12 @@
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
+/**
+ * A floating toggle button to switch between Light and Dark modes.
+ * Connects to the ThemeContext and renders the appropriate icon with hover effects.
+ * 
+ * @returns {JSX.Element} The theme toggle button.
+ */
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 

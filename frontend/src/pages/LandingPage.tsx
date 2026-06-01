@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Landing Page component.
+ * Serves as the public landing page, showcasing platform features like AI Chat,
+ * E-Library, and Admin Control, and directing users to registration or login options.
+ */
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -14,6 +20,11 @@ import {
 import AnimatedBackground from '../components/common/AnimatedBackground';
 import ThemeToggle from '../components/common/ThemeToggle';
 
+/**
+ * LandingPage component containing the promotional landing screen.
+ * Displays key details of the AI Assistant portal, interactive cards,
+ * and handles routing to the Sign In and Sign Up pages.
+ */
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 

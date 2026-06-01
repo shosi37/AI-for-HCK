@@ -1,3 +1,10 @@
+/**
+ * @fileoverview User Dashboard page.
+ * Displays a high-level overview of the user's profile status, quick action cards
+ * (AI Chat, Edit Profile, Library, Support), and contains the Settings and Email
+ * Verification modals.
+ */
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, LogOut, Mail, KeyRound, User as UserIcon, ChevronDown, Settings, Book } from 'lucide-react';
@@ -7,6 +14,9 @@ import SettingsModal from '../components/modals/SettingsModal';
 import VerifyEmailModal from '../components/modals/VerifyEmailModal';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 
+/**
+ * Props for the Dashboard page component.
+ */
 interface DashboardProps {
   user: User;
   onLogout: () => void;

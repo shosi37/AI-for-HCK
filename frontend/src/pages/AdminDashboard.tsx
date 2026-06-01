@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Admin Dashboard page component.
+ * Provides the administrator interface to manage registered student users,
+ * view active student chat sessions, manage the FAQ database (CRUD, import/export),
+ * inspect application usage analytics, and handle admin system tasks.
+ */
+
 import { useState, useEffect } from 'react';
 import {
   Users,
@@ -39,33 +46,61 @@ import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 import { notify, showErrorToast, showSuccessToast } from '../utils/notifications';
 
-
-
+/**
+ * Represents a single message structure inside a user's chat session.
+ */
 interface Message {
+  /** Unique identifier for the message. */
   id: string;
+  /** Plain text content of the message. */
   text: string;
+  /** Sender type: either the 'user' or the 'ai'. */
   sender: 'user' | 'ai';
+  /** Time when the message was sent. */
   timestamp: Date;
+  /** Optional user feedback rating the message as helpful (true) or unhelpful (false). */
   helpful?: boolean | null;
 }
 
+/**
+ * Represents a student user's chat thread.
+ */
 interface Chat {
+  /** Unique identifier for the chat. */
   id: string;
+  /** Title or subject line of the chat conversation. */
   title: string;
+  /** Time of the chat's creation or last update. */
   timestamp: Date;
+  /** Array of messages contained in this chat thread. */
   messages: Message[];
 }
 
+/**
+ * Represents a Frequently Asked Question object.
+ */
 interface FAQ {
+  /** Unique identifier for the FAQ. */
   id: string;
+  /** Question text. */
   question: string;
+  /** Answer text. */
   answer: string;
 }
 
+/**
+ * Props for the AdminDashboard component.
+ */
 interface AdminDashboardProps {
+  /** Callback function to perform admin logout. */
   onLogout: () => void;
 }
 
+/**
+ * AdminDashboard component rendering the administrative control panel.
+ * Handles student user listing, user deletion, chat session log inspection,
+ * FAQ management, and rendering system status and usage statistics.
+ */
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);

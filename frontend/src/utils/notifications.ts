@@ -1,9 +1,15 @@
 import { toast } from 'sonner';
 
 /**
- * Creative Success and Error Notification Utility
+ * @fileoverview Creative Success and Error Notification Utility.
+ * Provides unified, styled toast notifications for user interactions using Sonner.
  */
 
+/**
+ * Displays a standard success toast.
+ * @param {string} title - The main title of the notification.
+ * @param {string} [description] - Optional subtext.
+ */
 export const showSuccessToast = (title: string, description?: string) => {
     toast.success(title, {
         description: description || 'Everything looks good!',
@@ -11,6 +17,11 @@ export const showSuccessToast = (title: string, description?: string) => {
     });
 };
 
+/**
+ * Displays a standard error toast.
+ * @param {string} title - The main title of the notification.
+ * @param {string} [description] - Optional subtext.
+ */
 export const showErrorToast = (title: string, description?: string) => {
     toast.error(title, {
         description: description || 'Something went wrong. Let\'s try that again!',
@@ -18,7 +29,7 @@ export const showErrorToast = (title: string, description?: string) => {
     });
 };
 
-// Specialized notifications with "Creative" messages
+// Specialized notifications with curated "Creative" messages tailored for this app
 export const notify = {
     login: {
         success: (name: string) =>

@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 
+/**
+ * @fileoverview Modal handling email verification via OTP.
+ * Allows users to request OTPs and verify their account email.
+ */
+
+/**
+ * Props for the VerifyEmailModal component.
+ */
 interface VerifyEmailModalProps {
     isOpen: boolean;
     onClose: () => void;

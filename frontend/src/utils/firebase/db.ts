@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Firestore Database API Wrappers.
+ * Provides functions for managing chats, FAQs, and administrative queries
+ * within the Firebase Firestore database. Features real-time subscriptions.
+ */
+
 import {
   collection,
   doc,
@@ -40,7 +46,13 @@ export interface FAQ {
 
 // ===== CHAT FUNCTIONS =====
 
-// Save a chat
+/**
+ * Saves a new chat or updates an existing chat in the user's subcollection.
+ * 
+ * @param {string} userId - The user's UID.
+ * @param {Chat} chat - The chat object to save.
+ * @returns {Promise<void>}
+ */
 export const saveChat = async (userId: string, chat: Chat): Promise<void> => {
   // Validate inputs - silently return if invalid
   if (!userId || !chat?.id) {
@@ -66,7 +78,12 @@ export const saveChat = async (userId: string, chat: Chat): Promise<void> => {
   }
 };
 
-// Get all chats for a user
+/**
+ * Retrieves all chat histories for a specific user.
+ * 
+ * @param {string} userId - The user's UID.
+ * @returns {Promise<Chat[]>} An array of chat objects.
+ */
 export const getUserChats = async (userId: string): Promise<Chat[]> => {
   try {
     const chatsRef = collection(db, 'users', userId, 'chats');
@@ -93,7 +110,13 @@ export const getUserChats = async (userId: string): Promise<Chat[]> => {
   }
 };
 
-// Get a specific chat
+/**
+ * Retrieves a specific chat document by its ID.
+ * 
+ * @param {string} userId - The user's UID.
+ * @param {string} chatId - The ID of the chat.
+ * @returns {Promise<Chat | null>} The chat object, or null if not found.
+ */
 export const getChat = async (userId: string, chatId: string): Promise<Chat | null> => {
   try {
     const chatRef = doc(db, 'users', userId, 'chats', chatId);
@@ -148,7 +171,15 @@ export const deleteChat = async (userId: string, chatId: string): Promise<void> 
   }
 };
 
-// Listen to user chats in real-time
+/**
+ * Subscribes to real-time updates for a user's chats collection.
+ * Useful for updating the sidebar when new chats are created.
+ * 
+ * @param {string} userId - The user's UID.
+ * @param {Function} callback - Function called with the updated array of chats.
+ * @param {Function} [errorCallback] - Optional error handler.
+ * @returns {Function} An unsubscribe function to detach the listener.
+ */
 export const subscribeToUserChats = (
   userId: string,
   callback: (chats: Chat[]) => void,
@@ -317,7 +348,11 @@ export const importFAQs = async (faqs: Array<{ question: string; answer: string 
 
 // ===== ADMIN FUNCTIONS =====
 
-// Get all users
+/**
+ * Retrieves all users from Firestore (Admin only).
+ * 
+ * @returns {Promise<any[]>} An array of all user documents.
+ */
 export const getAllUsers = async (): Promise<any[]> => {
   try {
     const usersRef = collection(db, 'users');
@@ -380,7 +415,12 @@ export const deleteUser = async (userId: string): Promise<void> => {
   }
 };
 
-// Get analytics data
+/**
+ * Retrieves global analytics data for the admin dashboard.
+ * Aggregates user counts, total chats, messages, and feedback metrics.
+ * 
+ * @returns {Promise<Object>} The aggregated analytics data.
+ */
 export const getAnalyticsData = async () => {
   try {
     const users = await getAllUsers();

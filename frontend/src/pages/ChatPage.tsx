@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Chat Page component.
+ * Provides the interactive AI Chat interface for students, featuring chat history sidebar,
+ * real-time sync with Firebase, FAQ list display, user profile management, and light/dark theme toggle.
+ */
+
 import { useState, useEffect } from 'react';
 import {
   Send,
@@ -31,33 +37,65 @@ import SettingsModal from '../components/modals/SettingsModal';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 import { showErrorToast, showSuccessToast } from '../utils/notifications';
 
+/**
+ * Represents a single message in a chat conversation.
+ */
 interface Message {
+  /** Unique identifier for the message. */
   id: string;
+  /** Plain text content of the message. */
   text: string;
+  /** Sender type: either the 'user' or the 'ai'. */
   sender: 'user' | 'ai';
+  /** Time when the message was sent. */
   timestamp: Date;
+  /** Optional user feedback rating the message as helpful (true) or unhelpful (false). */
   helpful?: boolean | null;
 }
 
+/**
+ * Represents a user's chat session/thread.
+ */
 interface Chat {
+  /** Unique identifier for the chat. */
   id: string;
+  /** Title or subject line of the chat conversation. */
   title: string;
+  /** Time of the chat's creation or last update. */
   timestamp: Date;
+  /** Array of messages contained in this chat thread. */
   messages: Message[];
+  /** The Firebase User ID owning this chat. */
   userId: string;
 }
 
+/**
+ * Represents a Frequently Asked Question structure.
+ */
 interface FAQ {
+  /** Unique identifier for the FAQ. */
   id: string;
+  /** Question text. */
   question: string;
+  /** Answer text. */
   answer: string;
 }
 
+/**
+ * Props for the ChatPage component.
+ */
 interface ChatPageProps {
+  /** Currently authenticated user profile. */
   user: UserType;
+  /** Callback function to perform user logout. */
   onLogout: () => void;
 }
 
+/**
+ * ChatPage component rendering the student workspace chat application.
+ * Manages chat lifecycle (creation, deletion, updates), invokes the backend AI assistant API,
+ * tracks helpfulness ratings, and handles sidebar state.
+ */
 export default function ChatPage({ user, onLogout }: ChatPageProps) {
   const navigate = useNavigate();
   const [chats, setChats] = useState<Chat[]>([]);

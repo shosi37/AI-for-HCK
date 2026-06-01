@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Library page component.
+ * Provides a digital catalog of academic e-books covering subjects like
+ * Networking, Artificial Intelligence, and Programming, with search and filtering features.
+ */
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -15,14 +21,25 @@ import {
 import AnimatedBackground from '../components/common/AnimatedBackground';
 import ThemeToggle from '../components/common/ThemeToggle';
 
+/**
+ * Represents an academic book structure.
+ */
 interface EBook {
+  /** Unique identifier for the book. */
   id: string;
+  /** Title of the book. */
   title: string;
+  /** Author of the book. */
   author: string;
+  /** Subject category of the book. */
   category: 'Networking' | 'AI' | 'Programming';
+  /** Brief description of the book's contents. */
   description: string;
+  /** Optional URL of the book cover image. */
   coverImage?: string;
+  /** Direct URL link to download the PDF. */
   downloadUrl: string;
+  /** Optional official webpage for the book. */
   websiteUrl?: string;
 }
 
@@ -83,6 +100,10 @@ const EBOOKS: EBook[] = [
   },
 ];
 
+/**
+ * Library component rendering the electronic books directory interface.
+ * Supports keyword search, category filtering, and direct links for download or reading online.
+ */
 export default function Library() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');

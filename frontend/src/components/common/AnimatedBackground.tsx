@@ -1,5 +1,11 @@
 import React from 'react'
 
+/**
+ * Renders a slow-moving, gradient animated background.
+ * Uses TailwindCSS utilities and custom blob animations defined in the tailwind config.
+ * 
+ * @returns {JSX.Element} The animated background container.
+ */
 export default function AnimatedBackground(){
   return (
     <div className="absolute inset-0 -z-10 overflow-hidden">

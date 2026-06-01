@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Standalone Profile Edit page.
+ * Renders a dedicated page for users to update their basic profile details
+ * (name, student ID, department, year). Also displays an account security info panel.
+ * Email/Password changes are handled through the Settings modal flow instead.
+ */
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -23,6 +30,9 @@ import { toast } from 'sonner';
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 
+/**
+ * Props for the ProfileEdit page component.
+ */
 interface ProfileEditProps {
   user: UserType;
   onUpdateProfile: (user: UserType) => void;

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Signup page component.
+ * Allows users to register a new account, enter profile information,
+ * verify their email using a 6-digit OTP code, and authenticate via Google.
+ */
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -7,10 +13,18 @@ import ThemeToggle from "../components/common/ThemeToggle";
 import AnimatedBackground from "../components/common/AnimatedBackground";
 import { notify } from "../utils/notifications";
 
+/**
+ * Props for the Signup component.
+ */
 interface SignupProps {
+  /** Callback function triggered upon successful user registration and verification. */
   onSignup: (user: UserType) => void;
 }
 
+/**
+ * Signup component rendering the user registration form.
+ * Handles input state, validations, Firebase creation, OTP verification, and Google Sign-in.
+ */
 export default function Signup({ onSignup }: SignupProps) {
   const [formData, setFormData] = useState({
     name: "",

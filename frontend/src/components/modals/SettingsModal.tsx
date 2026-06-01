@@ -5,6 +5,14 @@ import ProfileEditModal from './ProfileEditModal';
 import EmailEditModal from './EmailEditModal';
 import PasswordEditModal from './PasswordEditModal';
 
+/**
+ * @fileoverview Main Settings modal that acts as a hub for managing user account details.
+ * Embeds specific edit modals depending on the active tab selected.
+ */
+
+/**
+ * Props for the SettingsModal component.
+ */
 interface SettingsModalProps {
   user: User;
   isOpen: boolean;

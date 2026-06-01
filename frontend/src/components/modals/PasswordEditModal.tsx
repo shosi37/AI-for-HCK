@@ -3,6 +3,14 @@ import { Lock, KeyRound, Shield, X, Eye, EyeOff, CheckCircle, AlertTriangle } fr
 import { updateUserPassword } from '../../utils/firebase/auth';
 import { notify } from '../../utils/notifications';
 
+/**
+ * @fileoverview Modal for users to change their account password.
+ * Requires re-authentication with current password before updating.
+ */
+
+/**
+ * Props for the PasswordEditModal component.
+ */
 interface PasswordEditModalProps {
   isOpen: boolean;
   onClose: () => void;

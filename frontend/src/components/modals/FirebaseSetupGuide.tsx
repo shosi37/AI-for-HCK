@@ -1,10 +1,20 @@
 import { X, CheckCircle, AlertTriangle, ExternalLink, Copy } from 'lucide-react';
 import { useState } from 'react';
 
+/**
+ * @fileoverview Guide for setting up Firebase security rules.
+ */
+
 interface FirebaseSetupGuideProps {
   onClose: () => void;
 }
 
+/**
+ * Modal that displays instructions and a copyable ruleset for Firebase Firestore setup.
+ * Shown when permission-denied errors occur indicating missing rules.
+ * 
+ * @param {FirebaseSetupGuideProps} props - Component properties.
+ */
 export default function FirebaseSetupGuide({ onClose }: FirebaseSetupGuideProps) {
   const [copied, setCopied] = useState(false);
 

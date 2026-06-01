@@ -1,3 +1,9 @@
+/**
+ * @fileoverview React Context for Theme Management.
+ * Handles the application's light/dark mode state, synchronizing with localStorage
+ * and system preferences.
+ */
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -9,6 +15,11 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/**
+ * Provider component that wraps the application and supplies theme state.
+ * Initializes theme based on localStorage or system preferences, and updates
+ * the DOM automatically when the theme changes.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check localStorage for saved theme preference
@@ -16,18 +27,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (savedTheme) {
       return savedTheme;
     }
-    // Check system preference
+    // Check system preference if no saved setting exists
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    return 'light';
+    return 'light'; // Default fallback
   });
 
+  // Sync theme changes to the DOM and localStorage
   useEffect(() => {
     const root = document.documentElement;
     const body = document.body;
-
-    console.log('Theme changed to:', theme);
 
     if (theme === 'dark') {
       root.classList.add('dark');
@@ -38,10 +48,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       body.classList.remove('dark');
       root.style.colorScheme = 'light';
     }
-    // Save to localStorage
+    
+    // Save to localStorage for persistence across reloads
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  /**
+   * Toggles the current theme between 'light' and 'dark'.
+   */
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
@@ -53,6 +67,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Custom hook for accessing the ThemeContext.
+ * @throws {Error} If called outside of a ThemeProvider.
+ */
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Forgot Password page.
+ * Allows users to request a password reset link sent to their email via Firebase.
+ */
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, Mail, CheckCircle } from 'lucide-react';

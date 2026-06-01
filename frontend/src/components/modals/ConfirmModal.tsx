@@ -1,6 +1,14 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
+/**
+ * @fileoverview A reusable confirmation modal component.
+ * Displays a prompt with customizable title, message, and action buttons.
+ */
+
+/**
+ * Props for the ConfirmModal component.
+ */
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
