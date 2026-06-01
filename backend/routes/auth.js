@@ -335,7 +335,7 @@ const verifyAdmin = async (req, res, next) => {
     const uid = payload.uid;
     const email = payload.email || '';
     
-    if (await isAdminUser(uid, email)) {
+    if (payload.isAdmin || payload.admin === true || (await isAdminUser(uid, email))) {
         req.user = { uid, email };
         return next();
     }

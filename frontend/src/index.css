@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @config "../tailwind.config.cjs";
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   :root {
     --accent: 221 90 255;

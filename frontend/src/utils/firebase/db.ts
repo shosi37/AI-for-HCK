@@ -19,7 +19,7 @@ import {
   Timestamp,
   writeBatch,
 } from 'firebase/firestore';
-import { db } from './config';
+import { db, auth } from './config';
 
 export interface Message {
   id: string;
@@ -394,9 +394,76 @@ export const subscribeToAllUsers = (
 };
 
 // Delete user and all their chats
-export const deleteUser = async (userId: string): Promise<void> => {
+export const deleteUser = async (userId: string): Promise<{ warning?: string } | void> => {
   try {
-    // Delete all user chats
+    let warning: string | undefined = undefined;
+
+    // 1. Delete user from Firebase Auth via backend admin API
+    let token: string | null = null;
+    let tokenSource = 'unknown';
+    
+    if (auth.currentUser) {
+      try {
+        console.log('[deleteUser] Attempting to get fresh Firebase ID token');
+        token = await auth.currentUser.getIdToken(true);
+        tokenSource = 'firebase-id-token';
+        console.log('[deleteUser] Successfully obtained fresh Firebase ID token');
+      } catch (e) {
+        console.warn('[deleteUser] Failed to retrieve active Firebase ID token:', e);
+        tokenSource = 'error-getting-firebase-token';
+      }
+    } else {
+      console.warn('[deleteUser] No current Firebase user found');
+    }
+    
+    if (!token) {
+      console.log('[deleteUser] Firebase ID token unavailable, falling back to localStorage admin_token');
+      token = localStorage.getItem('admin_token');
+      tokenSource = 'localStorage-admin-token';
+    }
+
+    if (token) {
+      console.log(`[deleteUser] Sending delete request for user ${userId} with token source: ${tokenSource}`);
+      
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const responseData = await response.json().catch(() => ({}));
+      
+      if (!response.ok) {
+        console.error('[deleteUser] Backend deletion error:', {
+          status: response.status,
+          error: responseData,
+          tokenSource,
+        });
+        
+        // Provide specific error messages based on status code
+        if (response.status === 401) {
+          throw new Error('Authentication failed: Your session may have expired. Please log in again.');
+        } else if (response.status === 403) {
+          throw new Error('Authorization failed: You do not have admin privileges to perform this action.');
+        }
+        
+        throw new Error(responseData.error || 'Failed to delete user credentials from Firebase Authentication.');
+      }
+      
+      console.log(`[deleteUser] User ${userId} successfully deleted from Firebase Auth`);
+      
+      if (responseData.warning) {
+        warning = responseData.warning;
+        console.warn('[deleteUser] Warning from backend:', warning);
+      }
+    } else {
+      console.warn('[deleteUser] No active authentication token found. Skipping Auth deletion.');
+    }
+
+    // 2. Delete all user chats in Firestore
+    console.log(`[deleteUser] Starting Firestore cleanup for user ${userId}`);
     const chatsRef = collection(db, 'users', userId, 'chats');
     const chatsSnapshot = await getDocs(chatsRef);
     
@@ -405,12 +472,20 @@ export const deleteUser = async (userId: string): Promise<void> => {
       batch.delete(chatDoc.ref);
     });
 
-    // Delete user document
+    // Delete user document in Firestore
     batch.delete(doc(db, 'users', userId));
 
     await batch.commit();
+    
+    console.log(`[deleteUser] Firestore cleanup completed for user ${userId}`);
+
+    return { warning };
   } catch (error) {
-    console.error('Delete user error:', error);
+    console.error('[deleteUser] Complete error details:', {
+      error,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     throw error;
   }
 };

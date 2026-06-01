@@ -15,6 +15,7 @@ const otpRoutes = require('./routes/otp');
 const oauthRoutes = require('./routes/oauth');
 const chatRoutes = require('./routes/chat');
 const adminRoutes = require('./routes/admin');
+const { transporter } = require('./config/email');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -67,6 +68,126 @@ app.use('/api/oauth', oauthRoutes);   // OAuth (e.g., Google) routes
 app.use('/api', authRoutes);          // Standard auth routes (login, profile, etc.)
 app.use('/api', chatRoutes);          // Chatbot and messaging routes
 app.use('/api/admin', adminRoutes);   // Admin portal routes
+
+// Support submission endpoint
+app.post("/api/support", async (req, res) => {
+  try {
+    console.log("Support request received:", req.body);
+
+    const { name, email, message } = req.body;
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: "np03cs4a230185@heraldcollege.edu.np",
+      subject: "Support Request",
+      text: `
+Name: ${name}
+Email: ${email}
+
+Message:
+${message}
+      `,
+    });
+
+    console.log("Email sent:", info.response);
+
+    res.status(200).json({
+      success: true,
+      message: "Email sent successfully",
+    });
+  } catch (error) {
+    console.error("Email error:", error);
+
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Welcome email endpoint - sends a welcome message to newly registered users
+app.post("/api/welcome-email", async (req, res) => {
+  try {
+    const { email, name } = req.body;
+    if (!email || !name) {
+      return res.status(400).json({ success: false, error: "Missing email or name" });
+    }
+
+    console.log("Sending welcome email to:", email);
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Welcome to HCK AI Assistant! 🎓",
+      html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%); padding: 40px 32px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">Welcome to HCK AI Assistant! 🎓</h1>
+            <p style="color: rgba(255,255,255,0.85); margin-top: 8px; font-size: 14px;">Your intelligent academic companion</p>
+          </div>
+
+          <!-- Body -->
+          <div style="padding: 32px;">
+            <p style="font-size: 16px; color: #1f2937; margin-bottom: 20px;">
+              Hi <strong>${name}</strong>,
+            </p>
+            <p style="font-size: 14px; color: #4b5563; line-height: 1.7; margin-bottom: 20px;">
+              Thank you for joining the <strong>HCK AI Assistant</strong> platform! We're excited to have you as part of our academic community at Herald College Kathmandu.
+            </p>
+
+            <p style="font-size: 14px; color: #4b5563; line-height: 1.7; margin-bottom: 20px;">
+              Here's what you can do with your new account:
+            </p>
+
+            <!-- Features -->
+            <div style="margin-bottom: 24px;">
+              <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                <span style="display: inline-block; width: 24px; height: 24px; background: #eef2ff; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; margin-right: 12px; flex-shrink: 0;">💬</span>
+                <p style="margin: 0; font-size: 13px; color: #4b5563;"><strong>AI Chat Assistant</strong> — Get instant answers to your academic queries 24/7</p>
+              </div>
+              <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                <span style="display: inline-block; width: 24px; height: 24px; background: #f5f3ff; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; margin-right: 12px; flex-shrink: 0;">📚</span>
+                <p style="margin: 0; font-size: 13px; color: #4b5563;"><strong>Digital Library</strong> — Access eBooks, slides, and research papers</p>
+              </div>
+              <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                <span style="display: inline-block; width: 24px; height: 24px; background: #fdf2f8; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; margin-right: 12px; flex-shrink: 0;">🔒</span>
+                <p style="margin: 0; font-size: 13px; color: #4b5563;"><strong>Secure & Personalized</strong> — Your data is encrypted and your experience is tailored</p>
+              </div>
+            </div>
+
+            <p style="font-size: 14px; color: #4b5563; line-height: 1.7; margin-bottom: 24px;">
+              If you have any questions or need help, feel free to use the Support form on our platform or reply to this email.
+            </p>
+
+            <!-- Footer -->
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 24px;">
+              <p style="font-size: 12px; color: #9ca3af; margin: 0;">
+                Best regards,<br/>
+                <strong style="color: #4f46e5;">Shoaib Siddiqui</strong><br/>
+                Developer, HCK AI Assistant<br/>
+                Herald College Kathmandu
+              </p>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+
+    console.log("Welcome email sent:", info.response);
+
+    res.status(200).json({
+      success: true,
+      message: "Welcome email sent successfully",
+    });
+  } catch (error) {
+    console.error("Welcome email error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
 
 // Simple health check endpoint
 app.get('/api', (_, res) => res.json({ ok: true }));

@@ -74,6 +74,17 @@ export const signUp = async (
 
     await setDoc(doc(db, 'users', user.uid), userProfile);
 
+    // Send welcome email (fire-and-forget, don't block signup)
+    try {
+      await fetch('/api/welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      });
+    } catch (welcomeErr) {
+      console.warn('Welcome email failed (non-blocking):', welcomeErr);
+    }
+
     return userProfile;
   } catch (error: any) {
     console.error('Sign up error:', error);
@@ -347,6 +358,17 @@ export const signInWithGoogle = async (): Promise<{
 
         await setDoc(doc(db, 'users', user.uid), userProfile);
         console.log('New user profile created in Firestore');
+
+        // Send welcome email (fire-and-forget, don't block sign-in)
+        try {
+          await fetch('/api/welcome-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userProfile.email, name: userProfile.name }),
+          });
+        } catch (welcomeErr) {
+          console.warn('Welcome email failed (non-blocking):', welcomeErr);
+        }
       }
     } catch (firestoreError) {
       console.error('Firestore error during Google sign in:', firestoreError);

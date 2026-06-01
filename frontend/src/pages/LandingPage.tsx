@@ -4,18 +4,21 @@
  * E-Library, and Admin Control, and directing users to registration or login options.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  MessageSquare, 
-  Book, 
-  Shield, 
-  ArrowRight, 
-  Zap, 
-  Globe, 
+import {
+  MessageSquare,
+  Book,
+  Shield,
+  ArrowRight,
+  Zap,
+  Globe,
   Smartphone,
   Cpu,
-  Users
+  Users,
+  X,
+  CheckCircle2,
+  Send
 } from 'lucide-react';
 import AnimatedBackground from '../components/common/AnimatedBackground';
 import ThemeToggle from '../components/common/ThemeToggle';
@@ -27,6 +30,37 @@ import ThemeToggle from '../components/common/ThemeToggle';
  */
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+
+  // Support Form State
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message })
+      });
+      if (!res.ok) throw new Error('Failed to send support request');
+      setIsSubmitted(true);
+      setName('');
+      setEmail('');
+      setMessage('');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to send message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
@@ -45,14 +79,19 @@ const LandingPage: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-6 mr-2">
+              <a href="#about" className="text-gray-600 dark:text-white/60 hover:text-indigo-600 dark:hover:text-white font-medium transition-colors text-sm">About Us</a>
+              <button onClick={() => setIsPrivacyOpen(true)} className="text-gray-600 dark:text-white/60 hover:text-indigo-600 dark:hover:text-white font-medium transition-colors text-sm bg-transparent border-0 cursor-pointer">Privacy Policy</button>
+              <button onClick={() => setIsSupportOpen(true)} className="text-gray-600 dark:text-white/60 hover:text-indigo-600 dark:hover:text-white font-medium transition-colors text-sm bg-transparent border-0 cursor-pointer">Support</button>
+            </div>
             <ThemeToggle />
-            <button 
+            <button
               onClick={() => navigate('/login')}
               className="text-gray-700 dark:text-white/80 hover:text-indigo-600 dark:hover:text-white font-medium transition-colors"
             >
               Sign In
             </button>
-            <button 
+            <button
               onClick={() => navigate('/signup')}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl transition-all shadow-lg shadow-indigo-500/20 hover:scale-105 active:scale-95"
             >
@@ -70,24 +109,24 @@ const LandingPage: React.FC = () => {
               <Zap className="w-4 h-4" />
               <span>Next-Gen Student Portal</span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight">
               Empowering Your Education with <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">AI Intelligence</span>
             </h1>
-            
+
             <p className="text-xl text-gray-600 dark:text-white/60 leading-relaxed max-w-2xl mx-auto">
-              Welcome to the unified student ecosystem. Experience intelligent support, 
+              Welcome to the unified student ecosystem. Experience intelligent support,
               seamless resource management, and a digital library at your fingertips.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <button 
+              <button
                 onClick={() => navigate('/signup')}
                 className="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-lg font-bold transition-all shadow-xl shadow-indigo-500/30 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
                 Join Now <ArrowRight className="w-5 h-5" />
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/login')}
                 className="w-full sm:w-auto px-8 py-4 glass hover:bg-white/20 dark:hover:bg-white/5 text-gray-900 dark:text-white rounded-2xl text-lg font-bold border border-gray-200 dark:border-white/10 transition-all"
               >
@@ -104,7 +143,7 @@ const LandingPage: React.FC = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Intelligent AI Chat</h3>
               <p className="text-gray-600 dark:text-white/60 leading-relaxed">
-                Get instant answers to your academic queries. Our AI is trained to understand 
+                Get instant answers to your academic queries. Our AI is trained to understand
                 the curriculum and provide precise guidance 24/7.
               </p>
             </div>
@@ -115,7 +154,7 @@ const LandingPage: React.FC = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Digital Library</h3>
               <p className="text-gray-600 dark:text-white/60 leading-relaxed">
-                Access a curated collection of eBooks, slides, and research papers. 
+                Access a curated collection of eBooks, slides, and research papers.
                 Download resources instantly or browse official external sources.
               </p>
             </div>
@@ -126,7 +165,7 @@ const LandingPage: React.FC = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Secure & Personalized</h3>
               <p className="text-gray-600 dark:text-white/60 leading-relaxed">
-                Manage your academic profile with confidence. Your data is encrypted 
+                Manage your academic profile with confidence. Your data is encrypted
                 and your experience is tailored to your year and department.
               </p>
             </div>
@@ -139,14 +178,14 @@ const LandingPage: React.FC = () => {
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">Our Mission</h2>
                 <p className="text-gray-600 dark:text-white/70 leading-relaxed mb-6">
-                  The HCK AI Assistant was born from a simple yet powerful goal: to provide every student 
-                  at Herald College Kathmandu with a high-tier academic support system that never sleeps. 
+                  The HCK AI Assistant was born from a simple yet powerful goal: to provide every student
+                  at Herald College Kathmandu with a high-tier academic support system that never sleeps.
                   We believe that technology should be an enabler, not a barrier, to excellence.
                 </p>
                 <p className="text-gray-600 dark:text-white/70 leading-relaxed mb-6 italic border-l-4 border-indigo-600 pl-4">
                   "This platform represents a Final Year Project (FYP) dedicated to enhancing the digital learning experience at HCK. Developed with a focus on AI integration and student accessibility."
                   <br />
-                  <span className="font-bold text-gray-900 dark:text-white mt-2 block">— Shoaib Siddiqui, Level 6 CS Student</span>
+                  <span className="font-bold text-gray-900 dark:text-white mt-2 block">— Shoaib Siddiqui (WLVID: 2407750), Level 6 CS Student</span>
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
@@ -165,7 +204,7 @@ const LandingPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="aspect-square glass rounded-3xl flex flex-col items-center justify-center text-center p-6 border-indigo-500/20">
-                  <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">98%</div>
+                  <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">84%</div>
                   <div className="text-xs text-gray-500 dark:text-white/40">Accuracy Rate</div>
                 </div>
                 <div className="aspect-square glass rounded-3xl flex flex-col items-center justify-center text-center p-6 border-purple-500/20">
@@ -185,7 +224,7 @@ const LandingPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
               {/* Connector Line (Desktop Only) */}
               <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-indigo-500/10 via-purple-500/50 to-indigo-500/10 -translate-y-1/2 z-0"></div>
-              
+
               {[
                 { step: '01', title: 'Create Profile', desc: 'Join with your student ID and HCK email.', icon: <Users className="w-6 h-6" /> },
                 { step: '02', title: 'Consult AI', desc: 'Ask complex questions and get instant guidance.', icon: <MessageSquare className="w-6 h-6" /> },
@@ -263,10 +302,10 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-white/60 mb-6 leading-relaxed">
-                  Administrators can monitor platform health, analyze student engagement trends, 
+                  Administrators can monitor platform health, analyze student engagement trends,
                   and refine the AI training data in real-time to ensure maximum accuracy.
                 </p>
-                <button 
+                <button
                   onClick={() => navigate('/admin/login')}
                   className="w-full py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-bold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
                 >
@@ -281,28 +320,28 @@ const LandingPage: React.FC = () => {
             <div id="privacy" className="glass p-10 rounded-[40px] border border-gray-200 dark:border-white/10">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Privacy & Security</h3>
               <p className="text-gray-600 dark:text-white/60 leading-relaxed text-sm mb-6">
-                Your trust is our most valuable asset. We are committed to protecting your personal 
+                Your trust is our most valuable asset. We are committed to protecting your personal
                 and academic data through rigorous security protocols.
               </p>
               <div className="space-y-4 mb-6">
                 <div className="flex gap-3">
                   <div className="mt-1 text-indigo-500">✔</div>
                   <p className="text-xs text-gray-700 dark:text-white/80">
-                    <span className="font-bold">Zero Data Sharing:</span> Your personal info and chat 
+                    <span className="font-bold">Zero Data Sharing:</span> Your personal info and chat
                     histories are never shared with external advertisers or third-party agencies.
                   </p>
                 </div>
                 <div className="flex gap-3">
                   <div className="mt-1 text-indigo-500">✔</div>
                   <p className="text-xs text-gray-700 dark:text-white/80">
-                    <span className="font-bold">Encrypted Storage:</span> All profile data is encrypted 
+                    <span className="font-bold">Encrypted Storage:</span> All profile data is encrypted
                     using AES-256 standards, ensuring that your records remain strictly yours.
                   </p>
                 </div>
                 <div className="flex gap-3">
                   <div className="mt-1 text-indigo-500">✔</div>
                   <p className="text-xs text-gray-700 dark:text-white/80">
-                    <span className="font-bold">Anonymous Insights:</span> We only analyze aggregated, 
+                    <span className="font-bold">Anonymous Insights:</span> We only analyze aggregated,
                     anonymous data to improve the AI's accuracy for the entire community.
                   </p>
                 </div>
@@ -315,7 +354,7 @@ const LandingPage: React.FC = () => {
             <div id="support" className="glass p-10 rounded-[40px] border border-gray-200 dark:border-white/10 bg-indigo-600/5">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Dedicated Support</h3>
               <p className="text-gray-600 dark:text-white/60 leading-relaxed text-sm mb-6">
-                Need help with the platform or your academics? Our team and the AI 
+                Need help with the platform or your academics? Our team and the AI
                 are here to ensure you have a smooth experience.
               </p>
               <div className="space-y-4">
@@ -349,18 +388,161 @@ const LandingPage: React.FC = () => {
             <span className="text-lg font-bold text-gray-900 dark:text-white">HCK AI</span>
           </div>
           <div className="flex gap-8 text-sm text-gray-600 dark:text-white/60">
-            <a href="#" className="hover:text-indigo-600 transition-colors">About Us</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">Support</a>
+            <a href="#about" className="hover:text-indigo-600 transition-colors">About Us</a>
+            <button onClick={() => setIsPrivacyOpen(true)} className="hover:text-indigo-600 transition-colors bg-transparent border-0 cursor-pointer text-sm font-medium text-gray-600 dark:text-white/60">Privacy Policy</button>
+            <button onClick={() => setIsSupportOpen(true)} className="hover:text-indigo-600 transition-colors bg-transparent border-0 cursor-pointer text-sm font-medium text-gray-600 dark:text-white/60">Support</button>
             <a href="/admin/login" className="hover:text-indigo-600 transition-colors font-bold">Admin Portal</a>
           </div>
           <div className="text-sm text-gray-500 dark:text-white/40 text-center md:text-right">
             FYP Project by <span className="text-indigo-600 dark:text-indigo-400 font-bold">Shoaib Siddiqui</span>
             <br />
+            <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold block">WLVID: 2407750</span>
             Level 6 Student, Computer Science
           </div>
         </div>
       </footer>
+
+      {/* Privacy Policy Modal */}
+      {isPrivacyOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsPrivacyOpen(false)}></div>
+          <div className="relative w-full max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-[32px] shadow-2xl overflow-hidden max-h-[85vh] flex flex-col z-10 animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex justify-between items-center px-8 py-6 border-b border-gray-100 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <Shield className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Privacy Policy</h3>
+              </div>
+              <button onClick={() => setIsPrivacyOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl text-gray-500 dark:text-white/40 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+              <section>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">1. Data Collection</h4>
+                <p>
+                  We collect basic information required for academic personalization, including your student name, email, student ID, department, and academic year. Chat histories are securely stored to allow you to resume your learning sessions.
+                </p>
+              </section>
+              <section>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">2. How We Use Data</h4>
+                <p>
+                  Your information is used strictly to customize the AI responses based on your curriculum, manage your digital library access, and improve response accuracy. We track anonymous query feedback to train the model.
+                </p>
+              </section>
+              <section>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">3. AI Processing & Privacy</h4>
+                <p>
+                  The AI services are powered by secure integrations. Conversations processed by our NLP engines (such as Rasa NLU) are fully encrypted in transit and are never shared with external advertising networks.
+                </p>
+              </section>
+              <section>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">4. Data Ownership</h4>
+                <p>
+                  You retain full ownership of your data. You can edit your profile information or delete your account at any time through the student settings dashboard.
+                </p>
+              </section>
+            </div>
+            {/* Footer */}
+            <div className="px-8 py-6 bg-gray-50 dark:bg-white/5 border-t border-gray-100 dark:border-white/5 flex justify-end">
+              <button onClick={() => setIsPrivacyOpen(false)} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all">
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Support Modal */}
+      {isSupportOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsSupportOpen(false)}></div>
+          <div className="relative w-full max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-[32px] shadow-2xl overflow-hidden max-h-[85vh] flex flex-col z-10 animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex justify-between items-center px-8 py-6 border-b border-gray-100 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <Globe className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Help & Support</h3>
+              </div>
+              <button onClick={() => setIsSupportOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl text-gray-500 dark:text-white/40 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Content Container */}
+            <div className="flex-1 overflow-y-auto p-8 flex flex-col">
+              {isSubmitted ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-8">
+                  <CheckCircle2 className="w-16 h-16 text-green-500 animate-bounce" />
+                  <h4 className="text-xl font-bold text-gray-900 dark:text-white">Message Sent Successfully!</h4>
+                  <p className="text-sm text-gray-500 dark:text-white/60 max-w-sm">
+                    Thank you for reaching out. Shoaib will review your request and get back to you shortly.
+                  </p>
+                  <button 
+                    onClick={() => setIsSubmitted(false)} 
+                    className="mt-4 px-6 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-800 dark:text-white font-bold rounded-xl transition-all"
+                  >
+                    Send Another Message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSupportSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-white/40 uppercase mb-2">Name</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your Name" 
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-white/40 uppercase mb-2">Email Address</label>
+                    <input 
+                      type="email" 
+                      required 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@student.hck.edu.np" 
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-white/40 uppercase mb-2">Message</label>
+                    <textarea 
+                      required 
+                      rows={4}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="How can we help you today?" 
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:text-white resize-none"
+                    ></textarea>
+                  </div>
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
+                  >
+                    {isSubmitting ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <>Send Message <Send className="w-4 h-4" /></>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+            
+            {/* Developer Contact Footer */}
+            <div className="px-8 py-4 bg-gray-50 dark:bg-white/5 border-t border-gray-100 dark:border-white/5 text-center text-xs text-gray-500 dark:text-white/40">
+              Developed by <span className="font-bold text-gray-700 dark:text-white">Shoaib Siddiqui</span> | Powered by <span className="font-bold text-indigo-600 dark:text-indigo-400">Rasa NLU</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
