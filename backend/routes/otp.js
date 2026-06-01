@@ -1,20 +1,30 @@
+/**
+ * @fileoverview OTP authentication routes.
+ * Provides endpoints for generating, sending, and verifying One-Time Passwords via email.
+ */
+
 const express = require('express');
 const router = express.Router();
 const admin = require('../config/firebase');
 const { transporter, EMAIL_USER, EMAIL_PASS } = require('../config/email');
 
 /**
- * OTP: Send
+ * Route: POST /send
+ * Generates a 6-digit OTP, saves it to Firestore, and sends it via email.
+ * @route POST /send
+ * @returns {Object} JSON object indicating success or failure.
  */
 router.post('/send', async (req, res) => {
     const { email, uid } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
+    // Generate a random 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const expiresAt = Date.now() + 10 * 60 * 1000; // Expires in 10 minutes
 
     try {
         const db = admin.firestore();
+        // Save the generated OTP in Firestore with the email as the document ID
         await db.collection('otps').doc(email).set({
             otp,
             uid,
@@ -23,7 +33,8 @@ router.post('/send', async (req, res) => {
         });
 
         let mailSent = false;
-        // Try sending email if credentials present
+        
+        // Check if email credentials are provided, otherwise log to console (useful for dev)
         if (!EMAIL_USER || !EMAIL_PASS) {
             console.log('--- DEVELOPMENT OTP (no email creds) ---');
             console.log(`Email: ${email}`);
@@ -31,6 +42,7 @@ router.post('/send', async (req, res) => {
             console.log('-----------------------------------------');
         } else {
             try {
+                // Dispatch the email via Nodemailer
                 await transporter.sendMail({
                     from: `"AI Chatbot Support" <${EMAIL_USER}>`,
                     to: email,
@@ -58,7 +70,11 @@ router.post('/send', async (req, res) => {
 });
 
 /**
- * OTP: Verify
+ * Route: POST /verify
+ * Verifies a provided OTP against the one stored in Firestore.
+ * If successful, updates the user's verification status in both Firestore and active sessions.
+ * @route POST /verify
+ * @returns {Object} JSON object indicating success or an error message.
  */
 router.post('/verify', async (req, res) => {
     const { email, otp, uid } = req.body;
@@ -68,16 +84,19 @@ router.post('/verify', async (req, res) => {
         const db = admin.firestore();
         const doc = await db.collection('otps').doc(email).get();
 
+        // Check if the OTP document exists for this email
         if (!doc.exists) return res.status(400).json({ error: 'No OTP found for this email' });
 
         const data = doc.data();
+        
+        // Validate the OTP matches and is not expired
         if (data.otp !== otp) return res.status(400).json({ error: 'Invalid OTP' });
         if (data.expiresAt < Date.now()) return res.status(400).json({ error: 'OTP expired' });
 
-        // Mark user as verified in Firestore users collection
+        // Mark user as verified in Firestore 'users' collection
         await db.collection('users').doc(uid).set({ isVerified: true }, { merge: true });
 
-        // Update all active sessions for this user to reflect verified status
+        // Iterate through all active sessions for this user to reflect the newly verified status
         try {
             const sessionSnaps = await db.collection('sessions').where('uid', '==', uid).get();
             const batch = db.batch();
@@ -90,7 +109,7 @@ router.post('/verify', async (req, res) => {
             console.warn('Failed to update sessions after OTP verification', sessionErr);
         }
 
-        // Cleanup OTP
+        // Delete the consumed OTP document
         await db.collection('otps').doc(email).delete();
 
         res.json({ success: true, message: 'Email verified successfully' });

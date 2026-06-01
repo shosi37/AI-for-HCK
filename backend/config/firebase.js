@@ -1,21 +1,23 @@
+/**
+ * @fileoverview Firebase Admin SDK configuration and initialization.
+ * Sets up the Firebase Admin instance using the service account credentials.
+ */
+
 require('dotenv').config();
 const admin = require('firebase-admin');
 const path = require('path');
 
 const { SERVICE_ACCOUNT_PATH } = process.env;
 
+// Ensure the service account path is provided
 if (!SERVICE_ACCOUNT_PATH) {
     throw new Error('SERVICE_ACCOUNT_PATH missing in environment variables');
 }
 
 try {
     // Resolve service account path.
-    // We check if it's absolute, otherwise resolve relative to CWD (backend root)
-    // or relative to this file? 'require' treats relative paths relative to the file.
-    // But usually SERVICE_ACCOUNT_PATH in .env is something like "./service-account.json".
-    // server.js was in root, so it worked. Here we are in config/.
-    // Safe bet: resolve from process.cwd() which should be 'backend'.
-
+    // We check if it's absolute, otherwise resolve relative to CWD (backend root).
+    // This allows .env to use paths like "./service-account.json" correctly.
     let serviceAccount;
     if (path.isAbsolute(SERVICE_ACCOUNT_PATH)) {
         serviceAccount = require(SERVICE_ACCOUNT_PATH);
@@ -23,6 +25,7 @@ try {
         serviceAccount = require(path.resolve(process.cwd(), SERVICE_ACCOUNT_PATH));
     }
 
+    // Initialize Firebase Admin with the loaded credentials
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
     });

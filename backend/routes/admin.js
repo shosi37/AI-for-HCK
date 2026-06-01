@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Admin routes for authentication and management.
+ * Handles the login process for admin users against Firestore credentials.
+ */
+
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
@@ -5,14 +10,11 @@ const admin = require('../config/firebase');
 const { signAccessToken } = require('../utils/auth');
 
 /**
- * POST /admin/login
- * Body: { username, password }
- *
- * Checks against Firestore meta/adminCredentials:
- *   - username  (string)
- *   - hash      (SHA-256 hex of the password)
- *
- * Returns { token } on success, 401 on failure.
+ * Route: POST /admin/login
+ * Validates admin credentials against stored hash in Firestore.
+ * Expects a body containing { username, password }.
+ * @route POST /login
+ * @returns {Object} JSON object containing access tokens or an error message.
  */
 router.post('/login', async (req, res) => {
     const { username, password } = req.body || {};
@@ -23,6 +25,7 @@ router.post('/login', async (req, res) => {
 
     try {
         const db = admin.firestore();
+        // Fetch the admin credentials stored in the 'meta/adminCredentials' document
         const snap = await db.collection('meta').doc('adminCredentials').get();
 
         if (!snap.exists) {
@@ -31,7 +34,7 @@ router.post('/login', async (req, res) => {
         }
 
         const data = snap.data() || {};
-        // username may be stored as a string or as an array (Firestore array field)
+        // Username may be stored as a string or as an array (Firestore array field)
         const rawUsername = data.username;
         const storedUsername = Array.isArray(rawUsername) ? rawUsername[0] : rawUsername;
         const storedHash = data.hash;
@@ -41,19 +44,19 @@ router.post('/login', async (req, res) => {
             return res.status(500).json({ error: 'Admin credentials incomplete' });
         }
 
-        // Compare username
+        // Compare the provided username
         if (username !== storedUsername) {
             return res.status(401).json({ error: 'Invalid admin credentials' });
         }
 
-        // Compare password — stored hash is SHA-256 hex
+        // Compare password — the stored hash is expected to be a SHA-256 hex string
         const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
         if (passwordHash !== storedHash) {
             return res.status(401).json({ error: 'Invalid admin credentials' });
         }
 
-        // Issue a JWT with an admin flag
+        // Issue a server-side JWT with an admin flag
         const payload = {
             uid: `admin:${username}`,
             email: username,
@@ -62,7 +65,7 @@ router.post('/login', async (req, res) => {
         };
         const token = signAccessToken(payload);
 
-        // Issue a Firebase Custom Token
+        // Issue a Firebase Custom Token for client-side SDK integration
         const firebaseToken = await admin.auth().createCustomToken(`admin:${username}`, {
             email: username,
             admin: true

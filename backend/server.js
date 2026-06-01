@@ -1,17 +1,14 @@
+/**
+ * @fileoverview Main Express server configuration and entry point.
+ * Sets up middleware, CORS, routing, and handles server startup.
+ */
+
 require('dotenv').config({ override: true });
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const admin = require('./config/firebase'); // Initialize Firebase
-const axios = require('axios'); // For AbstractAPI proxy if needed here, or move that too?
-// Note: AbstractAPI proxy for Avatar was in server.js but not explicitly in auth or oauth.
-// It seems to be used dynamically. Let's keep the AbstractAPI Proxy here or move to a 'proxy' route?
-// The previous code had `app.get('/api/avatar/abstract/:seed')` inside oauth callback?? No, that was weirdly nested or copied. 
-// Ah, looking at the original file: lines 656-685. It WAS inside `app.get('/api/oauth/google/callback'...)` which is definitely a bug in the old code or I misread indentation.
-// Validating... It WAS INDEED nested in the callback in the specific view I requested?
-// Let's check the previous `view_file` output for lines 631-734.
-// Yes! Line 656 `app.get('/api/avatar/abstract/:seed', ...)` IS inside the callback function scope. That means it only defined the route when someone hit the callback? That's a huge bug in the original code. 
-// I will move it to `oauth.js` but as a standalone route.
+const admin = require('./config/firebase'); // Initialize Firebase Admin SDK
+const axios = require('axios'); // For AbstractAPI proxy
 
 const authRoutes = require('./routes/auth');
 const otpRoutes = require('./routes/otp');
@@ -22,7 +19,8 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-/* ---------------- CORS ---------------- */
+/* ---------------- CORS Configuration ---------------- */
+// Default allowed origins for development
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -30,6 +28,7 @@ const allowedOrigins = [
   'http://127.0.0.1:3000',
 ];
 
+// Append any additional origins from environment variables
 if (process.env.BACKEND_ALLOWED_ORIGINS) {
   process.env.BACKEND_ALLOWED_ORIGINS.split(',').forEach(o => {
     const t = o && o.trim();
@@ -39,20 +38,23 @@ if (process.env.BACKEND_ALLOWED_ORIGINS) {
 
 app.use(cors({
   origin: (origin, cb) => {
-    // allow non-browser requests
+    // Allow non-browser requests (e.g., Postman)
     if (!origin) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
-    // dev localhost regex and ngrok
+    
+    // Allow any localhost port in development
     if (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return cb(null, true);
     }
-    // Allow any ngrok-free.app or ngrok-free.dev domain for easy hosting
+    
+    // Allow ngrok tunnels for testing
     if (/\.ngrok-free\.(app|dev)$/.test(origin)) {
       return cb(null, true);
     }
+    
     return cb(new Error('Blocked by CORS: ' + origin));
   },
-  credentials: true,
+  credentials: true, // Allow cookies to be sent across origins
 }));
 
 app.options('*', cors());
@@ -60,16 +62,21 @@ app.use(express.json());
 app.use(cookieParser());
 
 /* ---------------- Routes ---------------- */
-app.use('/api/otp', otpRoutes);
-app.use('/api/oauth', oauthRoutes); // This handles /api/oauth/google...
-app.use('/api', authRoutes); // This handles /api/login, /api/profile etc.
-app.use('/api', chatRoutes); // Mount chat routes
-app.use('/api/admin', adminRoutes); // Admin-specific routes: POST /api/admin/login
+app.use('/api/otp', otpRoutes);       // OTP authentication routes
+app.use('/api/oauth', oauthRoutes);   // OAuth (e.g., Google) routes
+app.use('/api', authRoutes);          // Standard auth routes (login, profile, etc.)
+app.use('/api', chatRoutes);          // Chatbot and messaging routes
+app.use('/api/admin', adminRoutes);   // Admin portal routes
 
-// Root check
+// Simple health check endpoint
 app.get('/api', (_, res) => res.json({ ok: true }));
 
-// Avatar Proxy (AbstractAPI) - Moved from nested closure to global scope
+/**
+ * Avatar Proxy (AbstractAPI)
+ * Proxies requests to AbstractAPI to generate and serve user avatars,
+ * avoiding CORS issues from the frontend directly calling the API.
+ * @route GET /api/avatar/abstract/:seed
+ */
 app.get('/api/avatar/abstract/:seed', async (req, res) => {
   try {
     const seed = req.params.seed;
@@ -83,7 +90,7 @@ app.get('/api/avatar/abstract/:seed', async (req, res) => {
     const ct = (r.headers && r.headers['content-type']) ? r.headers['content-type'] : 'image/png';
 
     res.set('Content-Type', ct);
-    res.set('Cache-Control', 'public, max-age=31536000');
+    res.set('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
     res.set('Access-Control-Allow-Origin', '*');
     return res.send(Buffer.from(r.data));
   } catch (e) {
@@ -97,7 +104,7 @@ app.get('/api/avatar/abstract/:seed', async (req, res) => {
   }
 });
 
-// Dev Impersonate Helper
+// Dev Impersonate Helper - only active in non-production environments
 if (process.env.NODE_ENV !== 'production') {
   const { signAccessToken, setRefreshCookie } = require('./utils/auth');
   const sessions = require('./sessions');
@@ -106,6 +113,7 @@ if (process.env.NODE_ENV !== 'production') {
   app.post('/api/__dev/impersonate', async (req, res) => {
     const u = req.body && req.body.user ? req.body.user : req.body;
     if (!u || !u.uid) return res.status(400).json({ error: 'Missing user object with uid' });
+    
     const payload = {
       uid: u.uid,
       email: u.email || '',
@@ -113,16 +121,30 @@ if (process.env.NODE_ENV !== 'production') {
       emailVerified: !!u.emailVerified,
       photoURL: u.photoURL || ''
     };
+    
     const accessToken = signAccessToken(payload);
     const refreshToken = crypto.randomBytes(64).toString('hex');
     const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
-    try { await sessions.createSession({ uid: payload.uid, tokenHash: refreshHash, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, meta: payload }); } catch (e) { console.error('createSession failed in impersonate', e); }
+    
+    try { 
+      await sessions.createSession({ uid: payload.uid, tokenHash: refreshHash, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, meta: payload }); 
+    } catch (e) { 
+      console.error('createSession failed in impersonate', e); 
+    }
+    
     setRefreshCookie(res, refreshToken);
     return res.json({ token: accessToken, user: payload });
   });
 }
 
-/* ---------------- Start ---------------- */
+/* ---------------- Server Startup ---------------- */
+/**
+ * Starts the Express server, handling port conflicts by attempting
+ * sequential ports if the primary port is in use.
+ * @param {number} port - The port to attempt binding to.
+ * @param {number} attempts - The number of retry attempts remaining.
+ * @returns {http.Server} The running server instance.
+ */
 const startServer = (port = PORT, attempts = 5) => {
   const p = Number(port);
   const server = app.listen(p, () => console.log(`Backend running on http://localhost:${p}`));
@@ -146,4 +168,5 @@ const startServer = (port = PORT, attempts = 5) => {
   return server;
 };
 
+// Initiate server startup
 startServer();
