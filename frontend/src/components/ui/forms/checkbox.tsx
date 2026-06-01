@@ -1,11 +1,20 @@
 "use client";
 
+/**
+ * @fileoverview Checkbox UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { CheckIcon } from "lucide-react";
 
 import { cn } from "../utils";
 
+/**
+ * Checkbox component.
+ */
 function Checkbox({
   className,
   ...props

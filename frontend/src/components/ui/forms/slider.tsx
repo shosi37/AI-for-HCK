@@ -1,10 +1,19 @@
 "use client";
 
+/**
+ * @fileoverview Slider UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
 import { cn } from "../utils";
 
+/**
+ * Slider component.
+ */
 function Slider({
   className,
   defaultValue,

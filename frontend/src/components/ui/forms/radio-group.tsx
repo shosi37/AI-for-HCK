@@ -1,11 +1,20 @@
 "use client";
 
+/**
+ * @fileoverview Radio Group UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { CircleIcon } from "lucide-react";
 
 import { cn } from "../utils";
 
+/**
+ * Radio Group component.
+ */
 function RadioGroup({
   className,
   ...props
@@ -19,6 +28,9 @@ function RadioGroup({
   );
 }
 
+/**
+ * Radio Group Item component.
+ */
 function RadioGroupItem({
   className,
   ...props

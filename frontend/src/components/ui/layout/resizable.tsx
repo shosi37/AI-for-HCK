@@ -1,11 +1,20 @@
 "use client";
 
+/**
+ * @fileoverview Resizable UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import { GripVerticalIcon } from "lucide-react";
 import * as ResizablePrimitive from "react-resizable-panels";
 
 import { cn } from "../utils";
 
+/**
+ * Resizable Panel Group component.
+ */
 function ResizablePanelGroup({
   className,
   ...props
@@ -22,12 +31,18 @@ function ResizablePanelGroup({
   );
 }
 
+/**
+ * Resizable Panel component.
+ */
 function ResizablePanel({
   ...props
 }: React.ComponentProps<typeof ResizablePrimitive.Panel>) {
   return <ResizablePrimitive.Panel data-slot="resizable-panel" {...props} />;
 }
 
+/**
+ * Resizable Handle component.
+ */
 function ResizableHandle({
   withHandle,
   className,

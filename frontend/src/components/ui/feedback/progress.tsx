@@ -1,10 +1,19 @@
 "use client";
 
+/**
+ * @fileoverview Progress UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as ProgressPrimitive from "@radix-ui/react-progress";
 
 import { cn } from "../utils";
 
+/**
+ * Progress component.
+ */
 function Progress({
   className,
   value,

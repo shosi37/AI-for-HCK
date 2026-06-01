@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Pagination UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
 import * as React from "react";
 import {
   ChevronLeftIcon,
@@ -8,6 +13,9 @@ import {
 import { cn } from "../utils";
 import { Button, buttonVariants } from "../forms/button";
 
+/**
+ * Pagination component.
+ */
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
@@ -20,6 +28,9 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   );
 }
 
+/**
+ * Pagination Content component.
+ */
 function PaginationContent({
   className,
   ...props
@@ -33,6 +44,9 @@ function PaginationContent({
   );
 }
 
+/**
+ * Pagination Item component.
+ */
 function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />;
 }
@@ -42,6 +56,9 @@ type PaginationLinkProps = {
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
   React.ComponentProps<"a">;
 
+/**
+ * Pagination Link component.
+ */
 function PaginationLink({
   className,
   isActive,
@@ -65,6 +82,9 @@ function PaginationLink({
   );
 }
 
+/**
+ * Pagination Previous component.
+ */
 function PaginationPrevious({
   className,
   ...props
@@ -82,6 +102,9 @@ function PaginationPrevious({
   );
 }
 
+/**
+ * Pagination Next component.
+ */
 function PaginationNext({
   className,
   ...props
@@ -99,6 +122,9 @@ function PaginationNext({
   );
 }
 
+/**
+ * Pagination Ellipsis component.
+ */
 function PaginationEllipsis({
   className,
   ...props

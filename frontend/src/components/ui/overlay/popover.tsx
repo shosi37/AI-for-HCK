@@ -1,22 +1,37 @@
 "use client";
 
+/**
+ * @fileoverview Popover UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 import { cn } from "../utils";
 
+/**
+ * Popover component.
+ */
 function Popover({
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
+/**
+ * Popover Trigger component.
+ */
 function PopoverTrigger({
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
 }
 
+/**
+ * Popover Content component.
+ */
 function PopoverContent({
   className,
   align = "center",
@@ -39,6 +54,9 @@ function PopoverContent({
   );
 }
 
+/**
+ * Popover Anchor component.
+ */
 function PopoverAnchor({
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {

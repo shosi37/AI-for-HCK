@@ -1,10 +1,19 @@
 "use client";
 
+/**
+ * @fileoverview Tabs UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "../utils";
 
+/**
+ * Tabs component.
+ */
 function Tabs({
   className,
   ...props
@@ -18,6 +27,9 @@ function Tabs({
   );
 }
 
+/**
+ * Tabs List component.
+ */
 function TabsList({
   className,
   ...props
@@ -34,6 +46,9 @@ function TabsList({
   );
 }
 
+/**
+ * Tabs Trigger component.
+ */
 function TabsTrigger({
   className,
   ...props
@@ -50,6 +65,9 @@ function TabsTrigger({
   );
 }
 
+/**
+ * Tabs Content component.
+ */
 function TabsContent({
   className,
   ...props

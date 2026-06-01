@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Calendar UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
@@ -7,6 +13,9 @@ import { DayPicker } from "react-day-picker";
 import { cn } from "../utils";
 import { buttonVariants } from "../forms/button";
 
+/**
+ * Calendar component.
+ */
 function Calendar({
   className,
   classNames,

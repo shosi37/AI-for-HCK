@@ -1,33 +1,54 @@
 "use client";
 
+/**
+ * @fileoverview Sheet UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 
 import { cn } from "../utils";
 
+/**
+ * Sheet component.
+ */
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
 }
 
+/**
+ * Sheet Trigger component.
+ */
 function SheetTrigger({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Trigger>) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
 
+/**
+ * Sheet Close component.
+ */
 function SheetClose({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Close>) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
+/**
+ * Sheet Portal component.
+ */
 function SheetPortal({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Portal>) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
 }
 
+/**
+ * Sheet Overlay component.
+ */
 function SheetOverlay({
   className,
   ...props
@@ -44,6 +65,9 @@ function SheetOverlay({
   );
 }
 
+/**
+ * Sheet Content component.
+ */
 function SheetContent({
   className,
   children,
@@ -81,6 +105,9 @@ function SheetContent({
   );
 }
 
+/**
+ * Sheet Header component.
+ */
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -91,6 +118,9 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Sheet Footer component.
+ */
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -101,6 +131,9 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Sheet Title component.
+ */
 function SheetTitle({
   className,
   ...props
@@ -114,6 +147,9 @@ function SheetTitle({
   );
 }
 
+/**
+ * Sheet Description component.
+ */
 function SheetDescription({
   className,
   ...props

@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Chart UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
@@ -34,6 +40,9 @@ function useChart() {
   return context;
 }
 
+/**
+ * Chart Container component.
+ */
 function ChartContainer({
   id,
   className,
@@ -104,6 +113,9 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+/**
+ * Chart Tooltip Content component.
+ */
 function ChartTooltipContent({
   active,
   payload,
@@ -250,6 +262,9 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend;
 
+/**
+ * Chart Legend Content component.
+ */
 function ChartLegendContent({
   className,
   hideIcon = false,

@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Command UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
@@ -13,6 +19,9 @@ import {
   DialogTitle,
 } from "../overlay/dialog";
 
+/**
+ * Command component.
+ */
 function Command({
   className,
   ...props
@@ -29,6 +38,9 @@ function Command({
   );
 }
 
+/**
+ * Command Dialog component.
+ */
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
@@ -53,6 +65,9 @@ function CommandDialog({
   );
 }
 
+/**
+ * Command Input component.
+ */
 function CommandInput({
   className,
   ...props
@@ -75,6 +90,9 @@ function CommandInput({
   );
 }
 
+/**
+ * Command List component.
+ */
 function CommandList({
   className,
   ...props
@@ -91,6 +109,9 @@ function CommandList({
   );
 }
 
+/**
+ * Command Empty component.
+ */
 function CommandEmpty({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Empty>) {
@@ -103,6 +124,9 @@ function CommandEmpty({
   );
 }
 
+/**
+ * Command Group component.
+ */
 function CommandGroup({
   className,
   ...props
@@ -119,6 +143,9 @@ function CommandGroup({
   );
 }
 
+/**
+ * Command Separator component.
+ */
 function CommandSeparator({
   className,
   ...props
@@ -132,6 +159,9 @@ function CommandSeparator({
   );
 }
 
+/**
+ * Command Item component.
+ */
 function CommandItem({
   className,
   ...props
@@ -148,6 +178,9 @@ function CommandItem({
   );
 }
 
+/**
+ * Command Shortcut component.
+ */
 function CommandShortcut({
   className,
   ...props

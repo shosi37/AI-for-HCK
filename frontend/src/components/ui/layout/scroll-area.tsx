@@ -1,10 +1,19 @@
 "use client";
 
+/**
+ * @fileoverview Scroll Area UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 import { cn } from "../utils";
 
+/**
+ * Scroll Area component.
+ */
 function ScrollArea({
   className,
   children,
@@ -28,6 +37,9 @@ function ScrollArea({
   );
 }
 
+/**
+ * Scroll Bar component.
+ */
 function ScrollBar({
   className,
   orientation = "vertical",

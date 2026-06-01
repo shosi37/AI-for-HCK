@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Avatar component for user profiles based on Radix Avatar primitive.
+ */
+
 "use client";
 
 import * as React from "react";
@@ -5,6 +9,9 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
 import { cn } from "../utils"; 
 
+/**
+ * Root Avatar component that wraps image and fallback.
+ */
 function Avatar({
   className,
   ...props
@@ -21,6 +28,9 @@ function Avatar({
   );
 }
 
+/**
+ * Image component within the Avatar.
+ */
 function AvatarImage({
   className,
   ...props
@@ -34,6 +44,9 @@ function AvatarImage({
   );
 }
 
+/**
+ * Fallback initials/placeholder when the image fails to load or is not provided.
+ */
 function AvatarFallback({
   className,
   ...props

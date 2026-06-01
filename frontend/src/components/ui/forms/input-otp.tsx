@@ -1,11 +1,20 @@
 "use client";
 
+/**
+ * @fileoverview Input Otp UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import { OTPInput, OTPInputContext } from "input-otp";
 import { MinusIcon } from "lucide-react";
 
 import { cn } from "../utils";
 
+/**
+ * Input O T P component.
+ */
 function InputOTP({
   className,
   containerClassName,
@@ -26,6 +35,9 @@ function InputOTP({
   );
 }
 
+/**
+ * Input O T P Group component.
+ */
 function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -36,6 +48,9 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Input O T P Slot component.
+ */
 function InputOTPSlot({
   index,
   className,
@@ -66,6 +81,9 @@ function InputOTPSlot({
   );
 }
 
+/**
+ * Input O T P Separator component.
+ */
 function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="input-otp-separator" role="separator" {...props}>

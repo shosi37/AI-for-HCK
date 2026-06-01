@@ -1,5 +1,13 @@
+/**
+ * @fileoverview Skeleton UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
 import { cn } from "../utils";
 
+/**
+ * Skeleton component.
+ */
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

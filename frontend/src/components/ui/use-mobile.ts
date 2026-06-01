@@ -1,7 +1,16 @@
+/**
+ * @fileoverview Hook to check if the browser window size matches mobile layout breakpoint.
+ */
+
 import * as React from "react";
 
 const MOBILE_BREAKPOINT = 768;
 
+/**
+ * Hook that returns whether the current window viewport width is below the mobile breakpoint (768px).
+ * Uses window.matchMedia for performant updates on window resize.
+ * @returns {boolean} True if the viewport is mobile, false otherwise.
+ */
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
     undefined,

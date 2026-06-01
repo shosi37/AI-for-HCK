@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Toggle Group UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group";
 import { type VariantProps } from "class-variance-authority";
@@ -14,6 +20,9 @@ const ToggleGroupContext = React.createContext<
   variant: "default",
 });
 
+/**
+ * Toggle Group component.
+ */
 function ToggleGroup({
   className,
   variant,
@@ -40,6 +49,9 @@ function ToggleGroup({
   );
 }
 
+/**
+ * Toggle Group Item component.
+ */
 function ToggleGroupItem({
   className,
   children,

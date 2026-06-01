@@ -1,7 +1,15 @@
+/**
+ * @fileoverview Textarea UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
 import * as React from "react";
 
 import { cn } from "../utils";
 
+/**
+ * Textarea component.
+ */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

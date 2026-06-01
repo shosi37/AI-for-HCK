@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Accordion UI component based on Radix Accordion primitive.
+ */
+
 "use client";
 
 import * as React from "react";
@@ -6,12 +10,18 @@ import { ChevronDownIcon } from "lucide-react";
 
 import { cn } from "../utils"; 
 
+/**
+ * Root Accordion component.
+ */
 function Accordion({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
   return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
 }
 
+/**
+ * Individual Accordion item panel wrapper.
+ */
 function AccordionItem({
   className,
   ...props
@@ -25,6 +35,9 @@ function AccordionItem({
   );
 }
 
+/**
+ * Toggle trigger button for an Accordion item.
+ */
 function AccordionTrigger({
   className,
   children,
@@ -47,6 +60,9 @@ function AccordionTrigger({
   );
 }
 
+/**
+ * Content panel that expands/collapses for an Accordion item.
+ */
 function AccordionContent({
   className,
   children,

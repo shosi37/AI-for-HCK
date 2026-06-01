@@ -1,34 +1,55 @@
 "use client";
 
+/**
+ * @fileoverview Drawer UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "../utils";
 
+/**
+ * Drawer component.
+ */
 function Drawer({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
   return <DrawerPrimitive.Root data-slot="drawer" {...props} />;
 }
 
+/**
+ * Drawer Trigger component.
+ */
 function DrawerTrigger({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
 
+/**
+ * Drawer Portal component.
+ */
 function DrawerPortal({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
   return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />;
 }
 
+/**
+ * Drawer Close component.
+ */
 function DrawerClose({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
   return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />;
 }
 
+/**
+ * Drawer Overlay component.
+ */
 function DrawerOverlay({
   className,
   ...props
@@ -45,6 +66,9 @@ function DrawerOverlay({
   );
 }
 
+/**
+ * Drawer Content component.
+ */
 function DrawerContent({
   className,
   children,
@@ -72,6 +96,9 @@ function DrawerContent({
   );
 }
 
+/**
+ * Drawer Header component.
+ */
 function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -82,6 +109,9 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Drawer Footer component.
+ */
 function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -92,6 +122,9 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Drawer Title component.
+ */
 function DrawerTitle({
   className,
   ...props
@@ -105,6 +138,9 @@ function DrawerTitle({
   );
 }
 
+/**
+ * Drawer Description component.
+ */
 function DrawerDescription({
   className,
   ...props

@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Sidebar UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
@@ -53,6 +59,9 @@ function useSidebar() {
   return context;
 }
 
+/**
+ * Sidebar Provider component.
+ */
 function SidebarProvider({
   defaultOpen = true,
   open: openProp,
@@ -151,6 +160,9 @@ function SidebarProvider({
   );
 }
 
+/**
+ * Sidebar component.
+ */
 function Sidebar({
   side = "left",
   variant = "sidebar",
@@ -253,6 +265,9 @@ function Sidebar({
   );
 }
 
+/**
+ * Sidebar Trigger component.
+ */
 function SidebarTrigger({
   className,
   onClick,
@@ -279,6 +294,9 @@ function SidebarTrigger({
   );
 }
 
+/**
+ * Sidebar Rail component.
+ */
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   const { toggleSidebar } = useSidebar();
 
@@ -304,6 +322,9 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   );
 }
 
+/**
+ * Sidebar Inset component.
+ */
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
@@ -318,6 +339,9 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   );
 }
 
+/**
+ * Sidebar Input component.
+ */
 function SidebarInput({
   className,
   ...props
@@ -332,6 +356,9 @@ function SidebarInput({
   );
 }
 
+/**
+ * Sidebar Header component.
+ */
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -343,6 +370,9 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Sidebar Footer component.
+ */
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -354,6 +384,9 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Sidebar Separator component.
+ */
 function SidebarSeparator({
   className,
   ...props
@@ -368,6 +401,9 @@ function SidebarSeparator({
   );
 }
 
+/**
+ * Sidebar Content component.
+ */
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -382,6 +418,9 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Sidebar Group component.
+ */
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -393,6 +432,9 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Sidebar Group Label component.
+ */
 function SidebarGroupLabel({
   className,
   asChild = false,
@@ -414,6 +456,9 @@ function SidebarGroupLabel({
   );
 }
 
+/**
+ * Sidebar Group Action component.
+ */
 function SidebarGroupAction({
   className,
   asChild = false,
@@ -437,6 +482,9 @@ function SidebarGroupAction({
   );
 }
 
+/**
+ * Sidebar Group Content component.
+ */
 function SidebarGroupContent({
   className,
   ...props
@@ -451,6 +499,9 @@ function SidebarGroupContent({
   );
 }
 
+/**
+ * Sidebar Menu component.
+ */
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -462,6 +513,9 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   );
 }
 
+/**
+ * Sidebar Menu Item component.
+ */
 function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
@@ -473,6 +527,9 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   );
 }
 
+/**
+ * Styling variants for the Sidebar Menu Button component.
+ */
 const sidebarMenuButtonVariants = cva(
   "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
@@ -495,6 +552,9 @@ const sidebarMenuButtonVariants = cva(
   },
 );
 
+/**
+ * Sidebar Menu Button component.
+ */
 function SidebarMenuButton({
   asChild = false,
   isActive = false,
@@ -545,6 +605,9 @@ function SidebarMenuButton({
   );
 }
 
+/**
+ * Sidebar Menu Action component.
+ */
 function SidebarMenuAction({
   className,
   asChild = false,
@@ -577,6 +640,9 @@ function SidebarMenuAction({
   );
 }
 
+/**
+ * Sidebar Menu Badge component.
+ */
 function SidebarMenuBadge({
   className,
   ...props
@@ -599,6 +665,9 @@ function SidebarMenuBadge({
   );
 }
 
+/**
+ * Sidebar Menu Skeleton component.
+ */
 function SidebarMenuSkeleton({
   className,
   showIcon = false,
@@ -637,6 +706,9 @@ function SidebarMenuSkeleton({
   );
 }
 
+/**
+ * Sidebar Menu Sub component.
+ */
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -652,6 +724,9 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   );
 }
 
+/**
+ * Sidebar Menu Sub Item component.
+ */
 function SidebarMenuSubItem({
   className,
   ...props
@@ -666,6 +741,9 @@ function SidebarMenuSubItem({
   );
 }
 
+/**
+ * Sidebar Menu Sub Button component.
+ */
 function SidebarMenuSubButton({
   asChild = false,
   size = "md",

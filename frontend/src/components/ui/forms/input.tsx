@@ -1,7 +1,15 @@
+/**
+ * @fileoverview Input UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
 import * as React from "react";
 
 import { cn } from "../utils";
 
+/**
+ * Input component.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

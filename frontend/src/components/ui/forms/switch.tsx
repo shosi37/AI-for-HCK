@@ -1,10 +1,19 @@
 "use client";
 
+/**
+ * @fileoverview Switch UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 
 import { cn } from "../utils";
 
+/**
+ * Switch component.
+ */
 function Switch({
   className,
   ...props

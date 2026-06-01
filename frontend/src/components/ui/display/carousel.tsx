@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Carousel UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -42,6 +48,9 @@ function useCarousel() {
   return context;
 }
 
+/**
+ * Carousel component.
+ */
 function Carousel({
   orientation = "horizontal",
   opts,
@@ -132,6 +141,9 @@ function Carousel({
   );
 }
 
+/**
+ * Carousel Content component.
+ */
 function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
   const { carouselRef, orientation } = useCarousel();
 
@@ -153,6 +165,9 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Carousel Item component.
+ */
 function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
   const { orientation } = useCarousel();
 
@@ -171,6 +186,9 @@ function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Carousel Previous component.
+ */
 function CarouselPrevious({
   className,
   variant = "outline",
@@ -201,6 +219,9 @@ function CarouselPrevious({
   );
 }
 
+/**
+ * Carousel Next component.
+ */
 function CarouselNext({
   className,
   variant = "outline",

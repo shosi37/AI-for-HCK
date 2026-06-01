@@ -1,10 +1,19 @@
 "use client";
 
+/**
+ * @fileoverview Separator UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 
 import { cn } from "../utils";
 
+/**
+ * Separator component.
+ */
 function Separator({
   className,
   orientation = "horizontal",

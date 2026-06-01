@@ -1,17 +1,29 @@
 "use client";
 
+/**
+ * @fileoverview Context Menu UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
 import { cn } from "../utils";
 
+/**
+ * Context Menu component.
+ */
 function ContextMenu({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Root>) {
   return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />;
 }
 
+/**
+ * Context Menu Trigger component.
+ */
 function ContextMenuTrigger({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Trigger>) {
@@ -20,6 +32,9 @@ function ContextMenuTrigger({
   );
 }
 
+/**
+ * Context Menu Group component.
+ */
 function ContextMenuGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Group>) {
@@ -28,6 +43,9 @@ function ContextMenuGroup({
   );
 }
 
+/**
+ * Context Menu Portal component.
+ */
 function ContextMenuPortal({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Portal>) {
@@ -36,12 +54,18 @@ function ContextMenuPortal({
   );
 }
 
+/**
+ * Context Menu Sub component.
+ */
 function ContextMenuSub({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Sub>) {
   return <ContextMenuPrimitive.Sub data-slot="context-menu-sub" {...props} />;
 }
 
+/**
+ * Context Menu Radio Group component.
+ */
 function ContextMenuRadioGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.RadioGroup>) {
@@ -53,6 +77,9 @@ function ContextMenuRadioGroup({
   );
 }
 
+/**
+ * Context Menu Sub Trigger component.
+ */
 function ContextMenuSubTrigger({
   className,
   inset,
@@ -77,6 +104,9 @@ function ContextMenuSubTrigger({
   );
 }
 
+/**
+ * Context Menu Sub Content component.
+ */
 function ContextMenuSubContent({
   className,
   ...props
@@ -93,6 +123,9 @@ function ContextMenuSubContent({
   );
 }
 
+/**
+ * Context Menu Content component.
+ */
 function ContextMenuContent({
   className,
   ...props
@@ -111,6 +144,9 @@ function ContextMenuContent({
   );
 }
 
+/**
+ * Context Menu Item component.
+ */
 function ContextMenuItem({
   className,
   inset,
@@ -134,6 +170,9 @@ function ContextMenuItem({
   );
 }
 
+/**
+ * Context Menu Checkbox Item component.
+ */
 function ContextMenuCheckboxItem({
   className,
   children,
@@ -160,6 +199,9 @@ function ContextMenuCheckboxItem({
   );
 }
 
+/**
+ * Context Menu Radio Item component.
+ */
 function ContextMenuRadioItem({
   className,
   children,
@@ -184,6 +226,9 @@ function ContextMenuRadioItem({
   );
 }
 
+/**
+ * Context Menu Label component.
+ */
 function ContextMenuLabel({
   className,
   inset,
@@ -204,6 +249,9 @@ function ContextMenuLabel({
   );
 }
 
+/**
+ * Context Menu Separator component.
+ */
 function ContextMenuSeparator({
   className,
   ...props
@@ -217,6 +265,9 @@ function ContextMenuSeparator({
   );
 }
 
+/**
+ * Context Menu Shortcut component.
+ */
 function ContextMenuShortcut({
   className,
   ...props

@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Sonner UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, ToasterProps } from "sonner";
 

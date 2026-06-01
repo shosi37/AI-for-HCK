@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Select UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import {
@@ -10,24 +16,36 @@ import {
 
 import { cn } from "../utils";
 
+/**
+ * Select component.
+ */
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
 
+/**
+ * Select Group component.
+ */
 function SelectGroup({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
+/**
+ * Select Value component.
+ */
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
 
+/**
+ * Select Trigger component.
+ */
 function SelectTrigger({
   className,
   size = "default",
@@ -54,6 +72,9 @@ function SelectTrigger({
   );
 }
 
+/**
+ * Select Content component.
+ */
 function SelectContent({
   className,
   children,
@@ -89,6 +110,9 @@ function SelectContent({
   );
 }
 
+/**
+ * Select Label component.
+ */
 function SelectLabel({
   className,
   ...props
@@ -102,6 +126,9 @@ function SelectLabel({
   );
 }
 
+/**
+ * Select Item component.
+ */
 function SelectItem({
   className,
   children,
@@ -126,6 +153,9 @@ function SelectItem({
   );
 }
 
+/**
+ * Select Separator component.
+ */
 function SelectSeparator({
   className,
   ...props
@@ -139,6 +169,9 @@ function SelectSeparator({
   );
 }
 
+/**
+ * Select Scroll Up Button component.
+ */
 function SelectScrollUpButton({
   className,
   ...props
@@ -157,6 +190,9 @@ function SelectScrollUpButton({
   );
 }
 
+/**
+ * Select Scroll Down Button component.
+ */
 function SelectScrollDownButton({
   className,
   ...props

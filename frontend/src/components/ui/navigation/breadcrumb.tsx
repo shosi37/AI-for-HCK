@@ -1,13 +1,24 @@
+/**
+ * @fileoverview Breadcrumb UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 
 import { cn } from "../utils";
 
+/**
+ * Breadcrumb component.
+ */
 function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
   return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;
 }
 
+/**
+ * Breadcrumb List component.
+ */
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   return (
     <ol
@@ -21,6 +32,9 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   );
 }
 
+/**
+ * Breadcrumb Item component.
+ */
 function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
@@ -31,6 +45,9 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   );
 }
 
+/**
+ * Breadcrumb Link component.
+ */
 function BreadcrumbLink({
   asChild,
   className,
@@ -49,6 +66,9 @@ function BreadcrumbLink({
   );
 }
 
+/**
+ * Breadcrumb Page component.
+ */
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
@@ -62,6 +82,9 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   );
 }
 
+/**
+ * Breadcrumb Separator component.
+ */
 function BreadcrumbSeparator({
   children,
   className,
@@ -80,6 +103,9 @@ function BreadcrumbSeparator({
   );
 }
 
+/**
+ * Breadcrumb Ellipsis component.
+ */
 function BreadcrumbEllipsis({
   className,
   ...props

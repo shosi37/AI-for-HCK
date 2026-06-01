@@ -1,10 +1,19 @@
 "use client";
 
+/**
+ * @fileoverview Label UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 
 import { cn } from "../utils";
 
+/**
+ * Label component.
+ */
 function Label({
   className,
   ...props

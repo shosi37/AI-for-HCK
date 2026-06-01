@@ -1,11 +1,20 @@
 "use client";
 
+/**
+ * @fileoverview Menubar UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as MenubarPrimitive from "@radix-ui/react-menubar";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
 import { cn } from "../utils";
 
+/**
+ * Menubar component.
+ */
 function Menubar({
   className,
   ...props
@@ -22,24 +31,36 @@ function Menubar({
   );
 }
 
+/**
+ * Menubar Menu component.
+ */
 function MenubarMenu({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
   return <MenubarPrimitive.Menu data-slot="menubar-menu" {...props} />;
 }
 
+/**
+ * Menubar Group component.
+ */
 function MenubarGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
   return <MenubarPrimitive.Group data-slot="menubar-group" {...props} />;
 }
 
+/**
+ * Menubar Portal component.
+ */
 function MenubarPortal({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
   return <MenubarPrimitive.Portal data-slot="menubar-portal" {...props} />;
 }
 
+/**
+ * Menubar Radio Group component.
+ */
 function MenubarRadioGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
@@ -48,6 +69,9 @@ function MenubarRadioGroup({
   );
 }
 
+/**
+ * Menubar Trigger component.
+ */
 function MenubarTrigger({
   className,
   ...props
@@ -64,6 +88,9 @@ function MenubarTrigger({
   );
 }
 
+/**
+ * Menubar Content component.
+ */
 function MenubarContent({
   className,
   align = "start",
@@ -88,6 +115,9 @@ function MenubarContent({
   );
 }
 
+/**
+ * Menubar Item component.
+ */
 function MenubarItem({
   className,
   inset,
@@ -111,6 +141,9 @@ function MenubarItem({
   );
 }
 
+/**
+ * Menubar Checkbox Item component.
+ */
 function MenubarCheckboxItem({
   className,
   children,
@@ -137,6 +170,9 @@ function MenubarCheckboxItem({
   );
 }
 
+/**
+ * Menubar Radio Item component.
+ */
 function MenubarRadioItem({
   className,
   children,
@@ -161,6 +197,9 @@ function MenubarRadioItem({
   );
 }
 
+/**
+ * Menubar Label component.
+ */
 function MenubarLabel({
   className,
   inset,
@@ -181,6 +220,9 @@ function MenubarLabel({
   );
 }
 
+/**
+ * Menubar Separator component.
+ */
 function MenubarSeparator({
   className,
   ...props
@@ -194,6 +236,9 @@ function MenubarSeparator({
   );
 }
 
+/**
+ * Menubar Shortcut component.
+ */
 function MenubarShortcut({
   className,
   ...props
@@ -210,12 +255,18 @@ function MenubarShortcut({
   );
 }
 
+/**
+ * Menubar Sub component.
+ */
 function MenubarSub({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
   return <MenubarPrimitive.Sub data-slot="menubar-sub" {...props} />;
 }
 
+/**
+ * Menubar Sub Trigger component.
+ */
 function MenubarSubTrigger({
   className,
   inset,
@@ -240,6 +291,9 @@ function MenubarSubTrigger({
   );
 }
 
+/**
+ * Menubar Sub Content component.
+ */
 function MenubarSubContent({
   className,
   ...props

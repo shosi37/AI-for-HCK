@@ -1,17 +1,29 @@
 "use client";
 
+/**
+ * @fileoverview Alert Dialog UI component.
+ * Generated as part of the shadcn/ui design system.
+ */
+
+
 import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "../utils";
 import { Button, buttonVariants } from "../forms/button";
 
+/**
+ * Alert Dialog component.
+ */
 function AlertDialog({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
 }
 
+/**
+ * Alert Dialog Trigger component.
+ */
 function AlertDialogTrigger({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Trigger>) {
@@ -20,6 +32,9 @@ function AlertDialogTrigger({
   );
 }
 
+/**
+ * Alert Dialog Portal component.
+ */
 function AlertDialogPortal({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Portal>) {
@@ -28,6 +43,9 @@ function AlertDialogPortal({
   );
 }
 
+/**
+ * Alert Dialog Overlay component.
+ */
 function AlertDialogOverlay({
   className,
   ...props
@@ -44,6 +62,9 @@ function AlertDialogOverlay({
   );
 }
 
+/**
+ * Alert Dialog Content component.
+ */
 function AlertDialogContent({
   className,
   ...props
@@ -63,6 +84,9 @@ function AlertDialogContent({
   );
 }
 
+/**
+ * Alert Dialog Header component.
+ */
 function AlertDialogHeader({
   className,
   ...props
@@ -76,6 +100,9 @@ function AlertDialogHeader({
   );
 }
 
+/**
+ * Alert Dialog Footer component.
+ */
 function AlertDialogFooter({
   className,
   ...props
@@ -92,6 +119,9 @@ function AlertDialogFooter({
   );
 }
 
+/**
+ * Alert Dialog Title component.
+ */
 function AlertDialogTitle({
   className,
   ...props
@@ -105,6 +135,9 @@ function AlertDialogTitle({
   );
 }
 
+/**
+ * Alert Dialog Description component.
+ */
 function AlertDialogDescription({
   className,
   ...props
@@ -118,6 +151,9 @@ function AlertDialogDescription({
   );
 }
 
+/**
+ * Alert Dialog Action component.
+ */
 function AlertDialogAction({
   className,
   ...props
@@ -130,6 +166,9 @@ function AlertDialogAction({
   );
 }
 
+/**
+ * Alert Dialog Cancel component.
+ */
 function AlertDialogCancel({
   className,
   ...props
